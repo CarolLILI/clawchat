@@ -269,11 +269,8 @@ class GatewayClient {
       if (response['type'] == 'res') {
         if (response['ok'] != true && response.containsKey('error')) {
           final error = response['error'];
-          final message = Message.assistant(
-            content: 'Error: ${error['message'] ?? 'Unknown error'}',
-            isComplete: true,
-          );
-          _messageController.add(message);
+          final errMsg = error['message']?.toString() ?? 'Unknown error';
+          print('[ClawChat] Server response error: $errMsg');
         }
       }
     } catch (e) {
@@ -290,7 +287,7 @@ class GatewayClient {
 
     final signedAtMs = DateTime.now().millisecondsSinceEpoch;
     final role = 'operator';
-    final scopes = ['operator.read', 'operator.write'];
+    final scopes = ['operator.read', 'operator.write', 'operator.admin'];
     final clientId = 'gateway-client';
     final clientMode = 'ui';
 
