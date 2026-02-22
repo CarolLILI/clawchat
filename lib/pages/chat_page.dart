@@ -201,6 +201,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 : ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.symmetric(vertical: 8),
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       return MessageBubble(message: messages[index]);
