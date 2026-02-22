@@ -1,0 +1,103 @@
+# ClawChat
+
+OpenClaw Gateway 的 Flutter 聊天客户端
+
+## 功能特性
+
+- ✅ 手动添加 OpenClaw 服务器（IP/域名 + Token）
+- ✅ 多服务器管理，一键切换
+- ✅ WebSocket 实时聊天
+- ✅ 本地消息历史存储
+- ✅ 配置导入/导出备份
+- ✅ 支持局域网直连和云端服务器
+- ✅ 飞书风格 UI 设计
+
+## 项目结构
+
+```
+lib/
+├── main.dart                      # 应用入口
+├── constants/
+│   └── app_theme.dart             # 主题配色
+├── models/
+│   ├── server_config.dart         # 服务器配置模型
+│   └── message.dart               # 消息模型
+├── providers/
+│   ├── server_provider.dart       # 服务器状态管理
+│   └── connection_provider.dart   # 连接和消息管理
+├── services/
+│   ├── gateway_client.dart        # WebSocket 客户端
+│   └── storage_service.dart       # 本地存储服务
+├── pages/
+│   ├── server_list_page.dart      # 服务器列表（首页）
+│   ├── server_edit_page.dart      # 添加/编辑服务器
+│   └── chat_page.dart             # 聊天界面
+└── widgets/
+    ├── server_card.dart           # 服务器卡片
+    ├── message_bubble.dart        # 消息气泡
+    └── input_bar.dart             # 底部输入栏
+```
+
+## 开发环境
+
+- Flutter 3.x
+- Dart 3.x
+
+## 安装依赖
+
+```bash
+cd clawchat
+flutter pub get
+```
+
+## 运行
+
+```bash
+# 调试运行
+flutter run
+
+# 构建 Android
+flutter build apk
+
+# 构建 iOS（需要 Mac + Xcode）
+flutter build ios
+```
+
+## 使用说明
+
+### 1. 添加服务器
+
+打开 App → 点击"添加服务器" → 填写：
+- **名称**：自定义显示名称
+- **地址**：OpenClaw Gateway 的 IP 或域名
+- **端口**：默认 18789
+- **Token**：从 `~/.openclaw/openclaw.json` 获取 `gateway.auth.token`
+
+### 2. 连接
+
+添加后点击"测试连接"确保配置正确，然后点击卡片进入聊天。
+
+### 3. 配置迁移
+
+- **导出**：服务器列表页 → 导出图标 → 保存配置文件
+- **导入**：服务器列表页 → 导入图标 → 选择配置文件
+
+## 配色
+
+| 用途 | 颜色 |
+|------|------|
+| 主色 | #3370FF |
+| 用户消息 | #3370FF（蓝底白字）|
+| AI 消息 | #FFFFFF（白底黑字）|
+| 背景 | #F5F6F7 |
+
+## 技术栈
+
+- **状态管理**：Riverpod
+- **网络**：web_socket_channel
+- **存储**：Hive
+- **UI**：Material 3
+
+## License
+
+MIT
