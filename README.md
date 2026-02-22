@@ -1,18 +1,61 @@
-# ClawChat
+# ClawChat 🦞
 
 OpenClaw Gateway 的 Flutter 聊天客户端
 
-## 功能特性
+![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B?style=for-the-badge&logo=flutter&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?style=for-the-badge&logo=dart&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-- ✅ 手动添加 OpenClaw 服务器（IP/域名 + Token）
-- ✅ 多服务器管理，一键切换
-- ✅ WebSocket 实时聊天
-- ✅ 本地消息历史存储
-- ✅ 配置导入/导出备份
-- ✅ 支持局域网直连和云端服务器
-- ✅ 飞书风格 UI 设计
+---
 
-## 项目结构
+## 📖 项目背景
+
+ClawChat 诞生于 2026 年 2 月，是一个专为 [OpenClaw](https://github.com/openclaw/openclaw) 打造的移动端聊天客户端。
+
+在这个 AI 无处不在的时代，我们希望通过一个简洁、高效的移动端应用，让你随时随地与自己的 OpenClaw AI 助手保持连接——无论是在家里、办公室，还是旅途中。
+
+💡 **"随时随地，与 AI 对话"** —— 这是我们的开发初衷。
+
+---
+
+## ✨ 功能特性
+
+### 🔗 服务器管理
+
+- **手动添加** - 支持 IP/域名 + Token 方式添加 OpenClaw 服务器
+- **多服务器** - 一键切换不同的 OpenClaw 实例
+- **连接测试** - 添加前可先测试连接是否成功
+- **配置备份** - 支持导出/导入服务器配置，换机无忧
+
+### 💬 实时聊天
+
+- **WebSocket 连接** - 实时双向通信，消息秒达
+- **消息历史** - 本地存储聊天记录，断网也能查看
+- **流式响应** - AI 回复逐字显示，体验更自然
+- **飞书风格** - 简洁现代的 UI 设计
+
+### 🌐 网络支持
+
+- **局域网直连** - 同一 WiFi 下直连电脑上的 OpenClaw
+- **远程服务器** - 支持连接云端的 OpenClaw 实例
+- **自动重连** - 网络波动时自动恢复连接
+
+---
+
+## 🛠️ 技术栈
+
+| 技术 | 用途 |
+|------|------|
+| **Flutter 3.x** | 跨平台 UI 框架 |
+| **Dart 3.x** | 编程语言 |
+| **Riverpod** | 状态管理 |
+| **web_socket_channel** | WebSocket 通信 |
+| **Hive** | 本地数据存储 |
+| **Material 3** | UI 设计规范 |
+
+---
+
+## 📱 项目结构
 
 ```
 lib/
@@ -38,69 +81,34 @@ lib/
     └── input_bar.dart             # 底部输入栏
 ```
 
-## 开发环境
+---
 
-- Flutter 3.x
-- Dart 3.x
+## 🚀 快速开始
 
-## 安装依赖
+### 安装依赖
 
 ```bash
+git clone https://github.com/CarolLILI/clawchat.git
 cd clawchat
 flutter pub get
 ```
 
-## 运行
+### 运行调试
 
 ```bash
 # 调试运行
 flutter run
 
-# 构建 Android
-flutter build apk
+# 构建 Android APK
+flutter build apk --release
 
 # 构建 iOS（需要 Mac + Xcode）
-flutter build ios
+flutter build ios --release
 ```
-
-## 使用说明
-
-### 1. 添加服务器
-
-打开 App → 点击"添加服务器" → 填写：
-- **名称**：自定义显示名称
-- **地址**：OpenClaw Gateway 的 IP 或域名
-- **端口**：默认 18789
-- **Token**：从 `~/.openclaw/openclaw.json` 获取 `gateway.auth.token`
-
-### 2. 连接
-
-添加后点击"测试连接"确保配置正确，然后点击卡片进入聊天。
-
-### 3. 配置迁移
-
-- **导出**：服务器列表页 → 导出图标 → 保存配置文件
-- **导入**：服务器列表页 → 导入图标 → 选择配置文件
-
-## 配色
-
-| 用途 | 颜色 |
-|------|------|
-| 主色 | #3370FF |
-| 用户消息 | #3370FF（蓝底白字）|
-| AI 消息 | #FFFFFF（白底黑字）|
-| 背景 | #F5F6F7 |
-
-## 技术栈
-
-- **状态管理**：Riverpod
-- **网络**：web_socket_channel
-- **存储**：Hive
-- **UI**：Material 3
 
 ---
 
-## 开发成本统计
+## 💰 开发成本统计
 
 ### 开发时间
 - **总计**：约 6-8 小时
@@ -114,28 +122,14 @@ flutter build ios
 | AI 服务 | 用途 | 实际费用 |
 |---------|------|----------|
 | **Kimi AI (Moonshot)** | 代码生成、架构设计、文档编写、调试 | **¥ 60+** |
-| **Claude Code** | 复杂逻辑调试、错误修复、代码重构 | **$ 20**（个人版 $200/月 订阅，按比例约 $20）|
+| **Claude Code** | 复杂逻辑调试、错误修复、代码重构 | **$ 20**（个人版 $200/月 订阅，按比例）|
 | **总计** | | **¥ 60+ / $ 20** |
 
 > 注：实际开发中使用了大量 API 调用进行调试和修复，Kimi 费用约 ¥60+，Claude 使用个人版 Pro 订阅（$200/月）。
 
-### 人力成本估算
-
-按市场 Flutter 开发工程师时薪 ¥200-400 计算：
-- **保守估计**：6 小时 × ¥200 = **¥1,200**
-- **市场价位**：6 小时 × ¥400 = **¥2,400**
-
-### 总成本
-
-| 项目 | 费用 |
-|------|------|
-| AI 使用 | ¥0 |
-| 人力成本 | ¥1,200 - ¥2,400 |
-| **总计** | **¥1,200 - ¥2,400** |
-
 ---
 
-## 致谢
+## 🙏 致谢
 
 感谢以下工具和平台对本项目的支持：
 
@@ -149,7 +143,7 @@ flutter build ios
 
 ---
 
-## 联系方式
+## 📮 联系我们
 
 如有问题或建议，欢迎联系：
 
@@ -157,12 +151,14 @@ flutter build ios
 
 🐙 **GitHub**：[https://github.com/CarolLILI](https://github.com/CarolLILI)
 
----
-
-## License
-
-MIT
+⭐ **项目地址**：[https://github.com/CarolLILI/clawchat](https://github.com/CarolLILI/clawchat)
 
 ---
 
-*本项目由 AI 辅助开发，是人类与 AI 协作的成果。*
+## 📝 License
+
+MIT License
+
+---
+
+*本项目由 AI 辅助开发，是人类与 AI 协作的成果。* 🦞
