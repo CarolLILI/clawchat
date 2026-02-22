@@ -23,6 +23,8 @@ class ServerListPage extends ConsumerStatefulWidget {
 }
 
 class _ServerListPageState extends ConsumerState<ServerListPage> {
+  final _exportKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     final servers = ref.watch(serverListProvider);
@@ -35,6 +37,7 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
         elevation: 0,
         actions: [
           IconButton(
+            key: _exportKey,
             icon: const Icon(Icons.file_upload),
             tooltip: '导出配置',
             onPressed: _exportConfig,
@@ -165,24 +168,35 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
   Future<void> _exportConfig() async {
     try {
       final json = ref.read(serverListProvider.notifier).exportConfig();
-      
+
       // 保存到临时文件
       final tempDir = await getTemporaryDirectory();
       final fileName = 'clawchat_config_${DateTime.now().millisecondsSinceEpoch}.json';
       final filePath = path.join(tempDir.path, fileName);
       final file = File(filePath);
       await file.writeAsString(json);
-      
+
+      // 获取按钮位置（iOS 分享弹窗锚点）
+      Rect? sharePositionOrigin;
+      final renderBox = _exportKey.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox != null) {
+        final position = renderBox.localToGlobal(Offset.zero);
+        sharePositionOrigin = position & renderBox.size;
+      }
+
       // 分享文件
-      await Share.shareXFiles(
+      final result = await Share.shareXFiles(
         [XFile(filePath)],
         subject: 'ClawChat 配置备份',
+        sharePositionOrigin: sharePositionOrigin,
       );
-      
-      // 清理临时文件
-      await file.delete();
-      
-      if (mounted) {
+
+      // 分享完成后清理临时文件
+      if (await file.exists()) {
+        await file.delete();
+      }
+
+      if (mounted && result.status == ShareResultStatus.success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('配置已导出')),
         );
