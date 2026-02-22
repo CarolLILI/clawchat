@@ -32,7 +32,7 @@ class _InputBarState extends State<InputBar> {
   void _handleSubmit() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    
+
     widget.onSend?.call(text);
     _controller.clear();
     setState(() => _isComposing = false);
@@ -40,68 +40,85 @@ class _InputBarState extends State<InputBar> {
 
   @override
   Widget build(BuildContext context) {
+    final bool canSend = _isComposing && widget.isEnabled;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: const Border(
-          top: BorderSide(color: AppColors.border),
+        border: Border(
+          top: BorderSide(color: AppColors.border, width: 0.5),
         ),
       ),
       child: SafeArea(
-        child: Row(
-          children: [
-            // 附件按钮
-            IconButton(
-              onPressed: widget.isEnabled ? () {} : null,
-              icon: const Icon(Icons.attach_file),
-              color: AppColors.textSecondary,
-            ),
-            
-            // 输入框
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: TextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  enabled: widget.isEnabled,
-                  decoration: const InputDecoration(
-                    hintText: '输入消息...',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // 输入框
+              Expanded(
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 40, maxHeight: 120),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: AppColors.border, width: 0.5),
                   ),
-                  maxLines: null,
-                  textInputAction: TextInputAction.send,
-                  onChanged: (text) {
-                    setState(() => _isComposing = text.trim().isNotEmpty);
-                  },
-                  onSubmitted: (_) => _handleSubmit(),
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    enabled: widget.isEnabled,
+                    decoration: InputDecoration(
+                      hintText: widget.isEnabled ? '输入消息...' : '未连接到服务器',
+                      hintStyle: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 15,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                    ),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                    ),
+                    maxLines: null,
+                    textInputAction: TextInputAction.newline,
+                    onChanged: (text) {
+                      setState(() => _isComposing = text.trim().isNotEmpty);
+                    },
+                  ),
                 ),
               ),
-            ),
-            
-            // 发送按钮
-            const SizedBox(width: 8),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: Material(
-                color: _isComposing && widget.isEnabled
-                    ? AppColors.primary
-                    : AppColors.background,
-                borderRadius: BorderRadius.circular(20),
-                child: InkWell(
-                  onTap: _isComposing && widget.isEnabled ? _handleSubmit : null,
-                  borderRadius: BorderRadius.circular(20),
+
+              const SizedBox(width: 8),
+
+              // 发送按钮
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                transitionBuilder: (child, animation) => ScaleTransition(
+                  scale: animation,
+                  child: child,
+                ),
+                child: GestureDetector(
+                  key: ValueKey(canSend),
+                  onTap: canSend ? _handleSubmit : null,
                   child: Container(
-                    padding: const EdgeInsets.all(10),
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: canSend ? AppColors.primary : AppColors.background,
+                      shape: BoxShape.circle,
+                      border: canSend
+                          ? null
+                          : Border.all(color: AppColors.border, width: 0.5),
+                    ),
                     child: Icon(
-                      Icons.send,
-                      color: _isComposing && widget.isEnabled
+                      Icons.arrow_upward_rounded,
+                      color: canSend
                           ? AppColors.textOnPrimary
                           : AppColors.textSecondary,
                       size: 20,
@@ -109,8 +126,8 @@ class _InputBarState extends State<InputBar> {
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
