@@ -7,7 +7,6 @@ import '../models/server_config.dart';
 import '../providers/server_provider.dart';
 import '../services/gateway_client.dart';
 
-/// 添加/编辑服务器页
 class ServerEditPage extends ConsumerStatefulWidget {
   final ServerConfig? server;
 
@@ -24,7 +23,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
   final _portController = TextEditingController(text: '18789');
   final _tokenController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _isEditing = false;
   bool _useTLS = false;
   bool _isTesting = false;
@@ -70,212 +69,299 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: '服务器名称 *',
-                hintText: '例如：腾讯云服务器',
-                prefixIcon: Icon(Icons.label_outline),
+            // -- 基本信息 --
+            _buildSectionHeader('基本信息'),
+            _buildCard([
+              _buildTextField(
+                controller: _nameController,
+                label: '名称',
+                hint: '例如：腾讯云服务器',
+                icon: Icons.label_outline,
+                validator: (v) => (v == null || v.isEmpty) ? '请输入名称' : null,
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return '请输入服务器名称';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
+            ]),
 
-            Text(
-              '连接地址',
-              style: AppTextStyles.titleMedium.copyWith(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
 
-            TextFormField(
-              controller: _hostController,
-              decoration: const InputDecoration(
-                labelText: '服务器地址 *',
-                hintText: '192.168.1.100 或 openclaw.example.com',
-                prefixIcon: Icon(Icons.dns_outlined),
+            // -- 连接地址 --
+            _buildSectionHeader('连接地址'),
+            _buildCard([
+              _buildTextField(
+                controller: _hostController,
+                label: '服务器地址',
+                hint: '192.168.1.100 或 example.com',
+                icon: Icons.dns_outlined,
+                validator: (v) => (v == null || v.isEmpty) ? '请输入地址' : null,
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return '请输入服务器地址';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            TextFormField(
-              controller: _portController,
-              decoration: const InputDecoration(
-                labelText: '端口',
-                prefixIcon: Icon(Icons.tag),
+              const Divider(height: 0.5, indent: 44, color: AppColors.divider),
+              _buildTextField(
+                controller: _portController,
+                label: '端口',
+                hint: '18789',
+                icon: Icons.tag,
+                keyboardType: TextInputType.number,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return '请输入端口';
+                  final port = int.tryParse(v);
+                  if (port == null || port < 1 || port > 65535) return '无效端口号';
+                  return null;
+                },
               ),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return '请输入端口';
-                }
-                final port = int.tryParse(value);
-                if (port == null || port < 1 || port > 65535) {
-                  return '请输入有效的端口号';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
+              const Divider(height: 0.5, indent: 44, color: AppColors.divider),
+              _buildSwitchTile(
+                icon: Icons.lock_outlined,
+                title: '加密连接 (WSS)',
+                subtitle: '云服务器建议开启',
+                value: _useTLS,
+                onChanged: (v) => setState(() => _useTLS = v),
+              ),
+            ]),
 
-            SwitchListTile(
-              title: const Text('使用加密连接 (WSS)'),
-              subtitle: const Text('云服务器建议开启'),
-              value: _useTLS,
-              onChanged: (value) => setState(() => _useTLS = value),
-            ),
-            const Divider(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            Text(
-              '认证方式',
-              style: AppTextStyles.titleMedium.copyWith(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 8),
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(
-                  value: 'password',
-                  label: Text('密码登录'),
-                  icon: Icon(Icons.lock_outline, size: 18),
+            // -- 认证方式 --
+            _buildSectionHeader('认证方式'),
+            _buildCard([
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(
+                      value: 'password',
+                      label: Text('密码'),
+                      icon: Icon(Icons.lock_outline, size: 16),
+                    ),
+                    ButtonSegment(
+                      value: 'token',
+                      label: Text('Token'),
+                      icon: Icon(Icons.key_outlined, size: 16),
+                    ),
+                  ],
+                  selected: {_authMode},
+                  onSelectionChanged: (s) => setState(() => _authMode = s.first),
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    textStyle: WidgetStatePropertyAll(AppTextStyles.bodyMedium),
+                  ),
                 ),
-                ButtonSegment(
-                  value: 'token',
-                  label: Text('Token'),
-                  icon: Icon(Icons.key_outlined, size: 18),
+              ),
+              const SizedBox(height: 4),
+              if (_authMode == 'password') ...[
+                _buildTextField(
+                  controller: _passwordController,
+                  label: '密码',
+                  hint: '输入 Gateway 密码',
+                  icon: Icons.password_outlined,
+                  obscureText: true,
+                  validator: (v) =>
+                      _authMode == 'password' && (v == null || v.isEmpty) ? '请输入密码' : null,
                 ),
+                _buildHelpText('密码位于服务器 ~/.openclaw/openclaw.json 的 gateway.auth.password'),
+              ] else ...[
+                _buildTextField(
+                  controller: _tokenController,
+                  label: 'Auth Token',
+                  hint: '从 OpenClaw 配置中获取',
+                  icon: Icons.key_outlined,
+                  obscureText: true,
+                  validator: (v) =>
+                      _authMode == 'token' && (v == null || v.isEmpty) ? '请输入 Token' : null,
+                ),
+                _buildHelpText('Token 位于 ~/.openclaw/openclaw.json 的 gateway.auth.token'),
               ],
-              selected: {_authMode},
-              onSelectionChanged: (selection) {
-                setState(() => _authMode = selection.first);
-              },
-            ),
-            const SizedBox(height: 16),
+            ]),
 
-            if (_authMode == 'password') ...[
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: '密码 *',
-                  hintText: '输入 Gateway 密码',
-                  prefixIcon: Icon(Icons.lock_outline),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (_authMode == 'password' && (value == null || value.isEmpty)) {
-                    return '请输入密码';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                '密码在服务器 ~/.openclaw/openclaw.json 的 gateway.auth.password 中',
-                style: AppTextStyles.caption,
-              ),
-            ] else ...[
-              TextFormField(
-                controller: _tokenController,
-                decoration: const InputDecoration(
-                  labelText: 'Auth Token *',
-                  hintText: '从 OpenClaw 配置中获取',
-                  prefixIcon: Icon(Icons.key_outlined),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (_authMode == 'token' && (value == null || value.isEmpty)) {
-                    return '请输入 Auth Token';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Token 在 ~/.openclaw/openclaw.json 中，gateway.auth.token',
-                style: AppTextStyles.caption,
-              ),
-            ],
             const SizedBox(height: 24),
 
+            // -- 测试结果 --
             if (_isTesting)
-              const Center(child: CircularProgressIndicator())
-            else if (_testSuccess)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.online.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.medium),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle_outline, color: AppColors.online, size: 20),
-                    const SizedBox(width: 8),
-                    Text('连接成功', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.online)),
-                  ],
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  ),
                 ),
               )
+            else if (_testSuccess)
+              _buildResultBanner(
+                icon: Icons.check_circle_outline,
+                color: AppColors.online,
+                title: '连接成功',
+              )
             else if (_testError != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.medium),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-                        const SizedBox(width: 8),
-                        Text('连接失败', style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.error,
-                          fontWeight: FontWeight.w600,
-                        )),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _testError!,
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
-                    ),
-                  ],
-                ),
+              _buildResultBanner(
+                icon: Icons.error_outline,
+                color: AppColors.error,
+                title: '连接失败',
+                detail: _testError,
               ),
-            const SizedBox(height: 16),
 
+            const SizedBox(height: 12),
+
+            // -- 操作按钮 --
             OutlinedButton.icon(
               onPressed: _isTesting ? null : _testConnection,
               icon: const Icon(Icons.wifi_tethering, size: 18),
               label: const Text('测试连接'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
             ),
-            const SizedBox(height: 24),
-
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
                 onPressed: _save,
-                child: Text(_isEditing ? '保存' : '添加'),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.large),
+                  ),
+                ),
+                child: Text(_isEditing ? '保存' : '添加服务器'),
               ),
             ),
+            const SizedBox(height: 32),
           ],
         ),
       ),
     );
   }
+
+  // -- UI 构建辅助方法 --
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(title, style: AppTextStyles.caption),
+    );
+  }
+
+  Widget _buildCard(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    String? hint,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      style: AppTextStyles.bodyMedium,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon, size: 20, color: AppColors.textSecondary),
+        filled: false,
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        errorBorder: InputBorder.none,
+        focusedErrorBorder: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        labelStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+        hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textTertiary),
+        errorStyle: AppTextStyles.captionSmall.copyWith(color: AppColors.error),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: SwitchListTile(
+        secondary: Icon(icon, size: 20, color: AppColors.textSecondary),
+        title: Text(title, style: AppTextStyles.bodyMedium),
+        subtitle: subtitle != null
+            ? Text(subtitle, style: AppTextStyles.caption)
+            : null,
+        value: value,
+        onChanged: onChanged,
+        activeColor: AppColors.primary,
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+      ),
+    );
+  }
+
+  Widget _buildHelpText(String text) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(44, 0, 16, 12),
+      child: Text(text, style: AppTextStyles.caption),
+    );
+  }
+
+  Widget _buildResultBanner({
+    required IconData icon,
+    required Color color,
+    required String title,
+    String? detail,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.large),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 8),
+              Text(title, style: AppTextStyles.bodyMedium.copyWith(
+                color: color,
+                fontWeight: FontWeight.w600,
+              )),
+            ],
+          ),
+          if (detail != null) ...[
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 26),
+              child: Text(
+                detail,
+                style: AppTextStyles.caption.copyWith(color: color),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // -- 业务逻辑 --
 
   Future<void> _testConnection() async {
     if (!_formKey.currentState!.validate()) return;
@@ -289,16 +375,16 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
     try {
       final config = _buildConfig();
       final client = GatewayClient(config);
-      
+
       print('[ClawChat] Testing connection to ${config.wsUrl}');
       final result = await client.connect();
-      
+
       setState(() {
         _testSuccess = result.success;
         _testError = result.error;
         _isTesting = false;
       });
-      
+
       client.disconnect();
     } catch (e, stack) {
       print('[ClawChat] Test connection error: $e');
@@ -314,7 +400,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final config = _buildConfig();
-    
+
     if (_isEditing) {
       ref.read(serverListProvider.notifier).updateServer(widget.server!.id, config);
     } else {
