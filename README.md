@@ -83,6 +83,42 @@ lib/
 
 ---
 
+## 🔑 服务器认证密码说明
+
+ClawChat 连接 OpenClaw Gateway 时需要填写**认证密码**，该密码由 Gateway 服务端生成和管理，不是用户自行注册的账号密码。
+
+### 如何获取密码
+
+1. **登录你的服务器**（腾讯云、阿里云或本地电脑），打开终端
+2. **查看 OpenClaw 配置文件**：
+
+```bash
+cat ~/.openclaw/openclaw.json
+```
+
+3. **找到密码字段** `gateway.auth.password`，类似如下内容：
+
+```json
+{
+  "gateway": {
+    "auth": {
+      "password": "your-password-here"
+    },
+    "port": 18789
+  }
+}
+```
+
+4. **在 App 中填写**：打开 ClawChat → 添加服务器 → 认证方式选择「密码」→ 将上面的密码粘贴进去即可
+
+### 补充说明
+
+- 密码是 OpenClaw Gateway 首次启动时**自动生成**的，也可以手动修改配置文件来自定义
+- 如果配置文件中同时存在 `token` 字段，也可以在 App 中选择「Token」认证方式并填入对应的值
+- 修改密码后需要**重启 Gateway 服务**才能生效
+
+---
+
 ## ⚠️ 设备配对说明
 
 ClawChat 使用 OpenClaw Gateway 的**设备配对机制**进行安全认证。首次从新设备（手机）连接电脑上的 Gateway 时，需要在电脑上手动批准该设备，之后便永久信任，无需重复操作。
