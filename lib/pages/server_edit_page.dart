@@ -77,7 +77,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
               decoration: const InputDecoration(
                 labelText: '服务器名称 *',
                 hintText: '例如：腾讯云服务器',
-                prefixIcon: Icon(Icons.label),
+                prefixIcon: Icon(Icons.label_outline),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -88,9 +88,9 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
             ),
             const SizedBox(height: 16),
 
-            const Text(
+            Text(
               '连接地址',
-              style: AppTextStyles.bodyMedium,
+              style: AppTextStyles.titleMedium.copyWith(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 8),
 
@@ -99,7 +99,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
               decoration: const InputDecoration(
                 labelText: '服务器地址 *',
                 hintText: '192.168.1.100 或 openclaw.example.com',
-                prefixIcon: Icon(Icons.computer),
+                prefixIcon: Icon(Icons.dns_outlined),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -114,7 +114,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
               controller: _portController,
               decoration: const InputDecoration(
                 labelText: '端口',
-                prefixIcon: Icon(Icons.settings_ethernet),
+                prefixIcon: Icon(Icons.tag),
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
@@ -139,9 +139,9 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
             const Divider(),
             const SizedBox(height: 16),
 
-            const Text(
+            Text(
               '认证方式',
-              style: AppTextStyles.bodyMedium,
+              style: AppTextStyles.titleMedium.copyWith(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 8),
             SegmentedButton<String>(
@@ -149,12 +149,12 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
                 ButtonSegment(
                   value: 'password',
                   label: Text('密码登录'),
-                  icon: Icon(Icons.lock),
+                  icon: Icon(Icons.lock_outline, size: 18),
                 ),
                 ButtonSegment(
                   value: 'token',
                   label: Text('Token'),
-                  icon: Icon(Icons.key),
+                  icon: Icon(Icons.key_outlined, size: 18),
                 ),
               ],
               selected: {_authMode},
@@ -170,7 +170,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
                 decoration: const InputDecoration(
                   labelText: '密码 *',
                   hintText: '输入 Gateway 密码',
-                  prefixIcon: Icon(Icons.lock),
+                  prefixIcon: Icon(Icons.lock_outline),
                 ),
                 obscureText: true,
                 validator: (value) {
@@ -191,7 +191,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
                 decoration: const InputDecoration(
                   labelText: 'Auth Token *',
                   hintText: '从 OpenClaw 配置中获取',
-                  prefixIcon: Icon(Icons.key),
+                  prefixIcon: Icon(Icons.key_outlined),
                 ),
                 obscureText: true,
                 validator: (value) {
@@ -216,13 +216,13 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.online.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.check_circle, color: AppColors.online),
-                    SizedBox(width: 8),
-                    Text('连接成功', style: TextStyle(color: AppColors.online)),
+                    const Icon(Icons.check_circle_outline, color: AppColors.online, size: 20),
+                    const SizedBox(width: 8),
+                    Text('连接成功', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.online)),
                   ],
                 ),
               )
@@ -231,25 +231,25 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.error, color: AppColors.error),
+                        const Icon(Icons.error_outline, color: AppColors.error, size: 20),
                         const SizedBox(width: 8),
-                        const Text('连接失败', style: TextStyle(
+                        Text('连接失败', style: AppTextStyles.bodyMedium.copyWith(
                           color: AppColors.error,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         )),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Text(
                       _testError!,
-                      style: const TextStyle(color: AppColors.error, fontSize: 13),
+                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
                     ),
                   ],
                 ),
@@ -258,7 +258,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
 
             OutlinedButton.icon(
               onPressed: _isTesting ? null : _testConnection,
-              icon: const Icon(Icons.network_check),
+              icon: const Icon(Icons.wifi_tethering, size: 18),
               label: const Text('测试连接'),
             ),
             const SizedBox(height: 24),

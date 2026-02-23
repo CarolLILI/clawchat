@@ -71,6 +71,16 @@ class ServerListNotifier extends StateNotifier<List<ServerConfig>> {
     _loadServers(); // 重新加载
   }
 
+  /// 调整服务器顺序
+  Future<void> reorderServer(int oldIndex, int newIndex) async {
+    final list = [...state];
+    if (newIndex > oldIndex) newIndex--;
+    final item = list.removeAt(oldIndex);
+    list.insert(newIndex, item);
+    await _storage.reorderServers(list);
+    state = list;
+  }
+
   /// 刷新列表
   void refresh() {
     _loadServers();

@@ -33,14 +33,35 @@ class ClawChatApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: AppColors.background,
-        appBarTheme: const AppBarTheme(
+        dividerColor: AppColors.divider,
+        textTheme: const TextTheme(
+          headlineLarge: AppTextStyles.headlineLarge,
+          headlineMedium: AppTextStyles.headlineMedium,
+          titleLarge: AppTextStyles.titleLarge,
+          titleMedium: AppTextStyles.titleMedium,
+          bodyLarge: AppTextStyles.bodyLarge,
+          bodyMedium: AppTextStyles.bodyMedium,
+          bodySmall: AppTextStyles.bodySmall,
+          labelLarge: AppTextStyles.bodyMedium,
+          labelSmall: AppTextStyles.caption,
+        ),
+        appBarTheme: AppBarTheme(
           backgroundColor: AppColors.surface,
           foregroundColor: AppColors.textPrimary,
           elevation: 0,
-          centerTitle: true,
+          scrolledUnderElevation: 0.5,
+          centerTitle: false,
+          titleTextStyle: AppTextStyles.appBarTitle,
+          toolbarHeight: 56,
+          shape: const Border(
+            bottom: BorderSide(color: AppColors.divider, width: 0.5),
+          ),
         ),
         cardTheme: CardThemeData(
           elevation: 0,
+          color: AppColors.surface,
+          surfaceTintColor: Colors.transparent,
+          margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.large),
           ),
@@ -48,6 +69,8 @@ class ClawChatApp extends StatelessWidget {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: AppColors.background,
+          hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textTertiary),
+          labelStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.medium),
             borderSide: const BorderSide(color: AppColors.border),
@@ -58,7 +81,7 @@ class ClawChatApp extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.medium),
-            borderSide: const BorderSide(color: AppColors.primary),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
@@ -67,6 +90,7 @@ class ClawChatApp extends StatelessWidget {
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.textOnPrimary,
             elevation: 0,
+            textStyle: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -77,18 +101,57 @@ class ClawChatApp extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),
+            textStyle: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.medium),
             ),
           ),
         ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            textStyle: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
+          ),
+        ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.textOnPrimary,
           elevation: 2,
+          highlightElevation: 4,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.xlarge),
+          ),
+        ),
+        snackBarTheme: SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+          ),
+        ),
+        popupMenuTheme: PopupMenuThemeData(
+          elevation: 4,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+          ),
+          textStyle: AppTextStyles.bodyMedium,
+        ),
+        dialogTheme: DialogThemeData(
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.xlarge),
+          ),
+          titleTextStyle: AppTextStyles.titleLarge,
+          contentTextStyle: AppTextStyles.bodyMedium,
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppRadius.xlarge),
+            ),
           ),
         ),
       ),

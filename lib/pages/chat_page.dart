@@ -95,10 +95,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('小虾', style: TextStyle(fontSize: 16)),
+              const Text('小虾', style: AppTextStyles.appBarTitle),
               Text(
                 widget.server.displayAddress,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+                style: AppTextStyles.appBarSubtitle,
               ),
             ],
           ),
@@ -106,7 +106,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         actions: [
           _buildConnectionStatus(connectionState),
           IconButton(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_horiz, size: 20),
             onPressed: () => _showOptions(context),
           ),
         ],
@@ -118,16 +118,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 4),
               color: AppColors.primaryLight,
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 12,
                     height: 12,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                  SizedBox(width: 8),
-                  Text('连接中...', style: TextStyle(fontSize: 12)),
+                  const SizedBox(width: 8),
+                  Text('连接中...', style: AppTextStyles.caption.copyWith(color: AppColors.primary)),
                 ],
               ),
             ),
@@ -141,11 +141,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error, size: 14, color: AppColors.error),
+                      const Icon(Icons.error_outline, size: 14, color: AppColors.error),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         '连接失败',
-                        style: TextStyle(fontSize: 12, color: AppColors.error),
+                        style: AppTextStyles.caption.copyWith(color: AppColors.error),
                       ),
                       TextButton(
                         onPressed: () => ref.read(connectionProvider(widget.server.id).notifier).reconnect(),
@@ -153,14 +153,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       ),
                     ],
                   ),
-                  // 显示详细错误信息
                   Consumer(
                     builder: (context, ref, child) {
                       final error = ref.read(connectionProvider(widget.server.id).notifier).lastError;
                       if (error != null) {
                         return Text(
                           error,
-                          style: const TextStyle(fontSize: 10, color: AppColors.error),
+                          style: AppTextStyles.captionSmall.copyWith(color: AppColors.error),
                           textAlign: TextAlign.center,
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
@@ -176,15 +175,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           if (connectionState == ConnState.disconnected)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              color: Colors.grey.withValues(alpha: 0.1),
+              color: AppColors.surfaceVariant,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.offline_bolt, size: 14, color: Colors.grey),
+                  const Icon(Icons.cloud_off_outlined, size: 14, color: AppColors.textSecondary),
                   const SizedBox(width: 8),
-                  const Text(
-                    '未连接，点击连接',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  Text(
+                    '未连接',
+                    style: AppTextStyles.caption,
                   ),
                   TextButton(
                     onPressed: _connect,
@@ -257,65 +256,43 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.chat_bubble_outline,
-            size: 80,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            '开始聊天吧',
-            style: AppTextStyles.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '输入消息与小虾对话',
-            style: AppTextStyles.bodyMedium,
-          ),
-          const SizedBox(height: 32),
-          Wrap(
-            spacing: 8,
-            children: [
-              _buildSuggestionChip('你好'),
-              _buildSuggestionChip('帮我写代码'),
-              _buildSuggestionChip('总结这篇文章'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSuggestionChip(String text) {
-    return ActionChip(
-      label: Text(text),
-      onPressed: () => _sendMessage(text),
-    );
-  }
-
-  void _showServerInfo(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(widget.server.name, style: AppTextStyles.headlineLarge),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.chat_outlined,
+                size: 32,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              '开始聊天吧',
+              style: AppTextStyles.titleLarge,
+            ),
             const SizedBox(height: 8),
-            Text('地址: ${widget.server.displayAddress}'),
-            Text('TLS: ${widget.server.useTLS ? '启用' : '未启用'}'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // TODO: 切换服务器
-              },
-              child: const Text('切换服务器'),
+            Text(
+              '输入消息与小虾对话',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 24),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildSuggestionChip('你好'),
+                _buildSuggestionChip('帮我写代码'),
+                _buildSuggestionChip('总结这篇文章'),
+              ],
             ),
           ],
         ),
@@ -323,30 +300,93 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
+  Widget _buildSuggestionChip(String text) {
+    return ActionChip(
+      label: Text(text, style: AppTextStyles.bodyMedium),
+      backgroundColor: AppColors.surface,
+      side: const BorderSide(color: AppColors.border, width: 0.5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.round),
+      ),
+      onPressed: () => _sendMessage(text),
+    );
+  }
+
+  void _showServerInfo(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.server.name, style: AppTextStyles.headlineMedium),
+              const SizedBox(height: 16),
+              _buildInfoRow(Icons.link_outlined, '地址', widget.server.displayAddress),
+              const SizedBox(height: 8),
+              _buildInfoRow(
+                widget.server.useTLS ? Icons.lock_outlined : Icons.lock_open_outlined,
+                'TLS',
+                widget.server.useTLS ? '已启用' : '未启用',
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('切换服务器'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 8),
+        Text('$label: ', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+        Expanded(
+          child: Text(value, style: AppTextStyles.bodyMedium),
+        ),
+      ],
+    );
+  }
+
   void _showOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.delete),
-              title: const Text('清空聊天记录'),
-              onTap: () {
-                Navigator.pop(context);
-                ref.read(messageListProvider(widget.server.id).notifier).clearHistory();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('服务器设置'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: 跳转到编辑页
-              },
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: AppColors.textSecondary),
+                title: Text('清空聊天记录', style: AppTextStyles.bodyMedium),
+                onTap: () {
+                  Navigator.pop(context);
+                  ref.read(messageListProvider(widget.server.id).notifier).clearHistory();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_outlined, color: AppColors.textSecondary),
+                title: Text('服务器设置', style: AppTextStyles.bodyMedium),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

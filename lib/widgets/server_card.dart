@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import '../../constants/app_theme.dart';
 import '../../models/server_config.dart';
 
-/// 服务器卡片
 class ServerCard extends StatelessWidget {
   final ServerConfig config;
   final bool isConnected;
@@ -23,144 +22,202 @@ class ServerCard extends StatelessWidget {
     this.isDefault = false,
   });
 
+  Color _avatarColor(String name) {
+    final colors = [
+      const Color(0xFF3370FF),
+      const Color(0xFF7B67EE),
+      const Color(0xFF00B42A),
+      const Color(0xFFFF7D00),
+      const Color(0xFF14C9C9),
+      const Color(0xFFF54A45),
+    ];
+    final index = name.isEmpty ? 0 : name.codeUnitAt(0) % colors.length;
+    return colors[index];
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.large),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.large),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            // Avatar with status indicator
+            _buildAvatar(),
+            const SizedBox(width: 12),
+
+            // Server info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 在线状态指示器
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: isConnected ? AppColors.online : AppColors.offline,
-                      shape: BoxShape.circle,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          config.name,
+                          style: AppTextStyles.titleLarge,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isDefault)
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(AppRadius.small),
+                          ),
+                          child: Text(
+                            '默认',
+                            style: AppTextStyles.captionSmall.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  
-                  // 服务器名称
-                  Expanded(
-                    child: Text(
-                      config.name,
-                      style: AppTextStyles.titleLarge,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  
-                  // 默认标记
-                  if (isDefault)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
-                        borderRadius: BorderRadius.circular(4),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        config.useTLS ? Icons.lock_outlined : Icons.lock_open_outlined,
+                        size: 12,
+                        color: AppColors.textSecondary,
                       ),
-                      child: const Text(
-                        '默认',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.primary,
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          config.displayAddress,
+                          style: AppTextStyles.caption,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                  
-                  // 更多操作
-                  PopupMenuButton<String>(
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'edit':
-                          onEdit?.call();
-                          break;
-                        case 'delete':
-                          onDelete?.call();
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: 8),
-                            Text('编辑'),
-                          ],
+                      if (config.lastConnected != null)
+                        Text(
+                          _formatTime(config.lastConnected!),
+                          style: AppTextStyles.captionSmall,
                         ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, size: 20, color: AppColors.error),
-                            SizedBox(width: 8),
-                            Text('删除', style: TextStyle(color: AppColors.error)),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              
-              // 地址
-              Row(
-                children: [
-                  Icon(
-                    config.useTLS ? Icons.lock : Icons.lock_open,
-                    size: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    config.displayAddress,
-                    style: AppTextStyles.caption,
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () {
+            ),
+
+            const SizedBox(width: 4),
+
+            // Actions menu
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: PopupMenuButton<String>(
+                padding: EdgeInsets.zero,
+                iconSize: 18,
+                icon: const Icon(
+                  Icons.more_horiz,
+                  color: AppColors.textSecondary,
+                ),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'copy':
                       Clipboard.setData(ClipboardData(text: config.displayAddress));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('地址已复制')),
                       );
-                    },
-                    child: const Icon(
-                      Icons.copy,
-                      size: 14,
-                      color: AppColors.textSecondary,
+                      break;
+                    case 'edit':
+                      onEdit?.call();
+                      break;
+                    case 'delete':
+                      onDelete?.call();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'copy',
+                    child: Row(
+                      children: [
+                        Icon(Icons.copy_outlined, size: 18, color: AppColors.textSecondary),
+                        SizedBox(width: 10),
+                        Text('复制地址', style: AppTextStyles.bodyMedium),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
+                        SizedBox(width: 10),
+                        Text('编辑', style: AppTextStyles.bodyMedium),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                        const SizedBox(width: 10),
+                        Text('删除', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error)),
+                      ],
                     ),
                   ),
                 ],
               ),
-              
-              // 最后连接时间
-              if (config.lastConnected != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    '上次连接: ${_formatTime(config.lastConnected!)}',
-                    style: AppTextStyles.caption,
-                  ),
-                ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    final color = _avatarColor(config.name);
+    final initial = config.name.isEmpty ? 'S' : config.name.characters.first.toUpperCase();
+
+    return SizedBox(
+      width: 44,
+      height: 44,
+      child: Stack(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadius.large),
+            ),
+            child: Center(
+              child: Text(
+                initial,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: isConnected ? AppColors.online : AppColors.offline,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.surface, width: 1.5),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -168,10 +225,11 @@ class ServerCard extends StatelessWidget {
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final diff = now.difference(time);
-    
+
     if (diff.inMinutes < 1) return '刚刚';
     if (diff.inHours < 1) return '${diff.inMinutes}分钟前';
     if (diff.inDays < 1) return '${diff.inHours}小时前';
+    if (diff.inDays < 7) return '${diff.inDays}天前';
     return '${time.month}/${time.day}';
   }
 }

@@ -71,9 +71,8 @@ class _InputBarState extends State<InputBar> {
                     enabled: widget.isEnabled,
                     decoration: InputDecoration(
                       hintText: widget.isEnabled ? '输入消息...' : '未连接到服务器',
-                      hintStyle: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 15,
+                      hintStyle: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textTertiary,
                       ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
@@ -81,10 +80,7 @@ class _InputBarState extends State<InputBar> {
                         vertical: 10,
                       ),
                     ),
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 15,
-                    ),
+                    style: AppTextStyles.bodyMedium,
                     maxLines: null,
                     textInputAction: TextInputAction.newline,
                     onChanged: (text) {

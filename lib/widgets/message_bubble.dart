@@ -57,8 +57,7 @@ class MessageBubble extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               _formatTime(message.timestamp),
-              style: TextStyle(
-                fontSize: 10,
+              style: AppTextStyles.captionSmall.copyWith(
                 color: isUser 
                     ? AppColors.textOnPrimary.withValues(alpha: 0.7) 
                     : AppColors.textSecondary,
@@ -76,14 +75,10 @@ class MessageBubble extends StatelessWidget {
       return MarkdownBody(
         data: message.content,
         styleSheet: MarkdownStyleSheet(
-          p: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-          ),
-          code: const TextStyle(
+          p: AppTextStyles.bodyMedium,
+          code: AppTextStyles.caption.copyWith(
             backgroundColor: AppColors.surfaceVariant,
             fontFamily: 'monospace',
-            fontSize: 12,
           ),
           codeblockDecoration: BoxDecoration(
             color: AppColors.surfaceVariant,
@@ -93,12 +88,10 @@ class MessageBubble extends StatelessWidget {
       );
     }
     
-    // 用户消息纯文本
     return Text(
       message.content,
-      style: const TextStyle(
+      style: AppTextStyles.bodyMedium.copyWith(
         color: AppColors.textOnPrimary,
-        fontSize: 14,
       ),
     );
   }

@@ -33,61 +33,82 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('ClawChat'),
+        title: const Text(
+          'ClawChat',
+          style: AppTextStyles.headlineMedium,
+        ),
         elevation: 0,
         actions: [
           IconButton(
             key: _exportKey,
-            icon: const Icon(Icons.file_upload),
+            icon: const Icon(Icons.ios_share_outlined, size: 20),
             tooltip: '导出配置',
             onPressed: _exportConfig,
           ),
           IconButton(
-            icon: const Icon(Icons.file_download),
+            icon: const Icon(Icons.download_outlined, size: 20),
             tooltip: '导入配置',
             onPressed: () => _importConfig(),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: servers.isEmpty
           ? _buildEmptyState()
           : _buildServerList(servers, defaultServer),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _addServer,
-        icon: const Icon(Icons.add),
-        label: const Text('添加服务器'),
+        child: const Icon(Icons.add),
       ),
     );
   }
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.computer,
-            size: 80,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            '欢迎使用 ClawChat',
-            style: AppTextStyles.headlineLarge,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '添加 OpenClaw 服务器开始聊天',
-            style: AppTextStyles.bodyMedium,
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: _addServer,
-            icon: const Icon(Icons.add),
-            label: const Text('添加服务器'),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.dns_outlined,
+                size: 40,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              '还没有服务器',
+              style: AppTextStyles.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '添加 OpenClaw 服务器，开始与 AI 对话',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: _addServer,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('添加服务器'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.large),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -96,19 +117,70 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
     List<ServerConfig> servers,
     ServerConfig? defaultServer,
   ) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: servers.length,
-      itemBuilder: (context, index) {
-        final server = servers[index];
-        return ServerCard(
-          config: server,
-          isDefault: server.id == defaultServer?.id,
-          onTap: () => _openChat(server),
-          onEdit: () => _editServer(server),
-          onDelete: () => _deleteServer(server),
-        );
-      },
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 80),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: Text(
+              '服务器 (${servers.length})',
+              style: AppTextStyles.caption,
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.large),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: ReorderableListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              proxyDecorator: (child, index, animation) {
+                return Material(
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(AppRadius.large),
+                  shadowColor: Colors.black26,
+                  child: child,
+                );
+              },
+              onReorder: (oldIndex, newIndex) {
+                ref.read(serverListProvider.notifier).reorderServer(oldIndex, newIndex);
+              },
+              itemCount: servers.length,
+              itemBuilder: (context, i) {
+                return Column(
+                  key: ValueKey(servers[i].id),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ReorderableDragStartListener(
+                      index: i,
+                      child: ServerCard(
+                        config: servers[i],
+                        isDefault: servers[i].id == defaultServer?.id,
+                        onTap: () => _openChat(servers[i]),
+                        onEdit: () => _editServer(servers[i]),
+                        onDelete: () => _deleteServer(servers[i]),
+                      ),
+                    ),
+                    if (i < servers.length - 1)
+                      const Divider(
+                        height: 0.5,
+                        thickness: 0.5,
+                        indent: 72,
+                        color: AppColors.divider,
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -149,7 +221,7 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
                 const SnackBar(content: Text('服务器已删除')),
               );
             },
-            child: const Text('删除', style: TextStyle(color: AppColors.error)),
+            child: Text('删除', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error)),
           ),
         ],
       ),

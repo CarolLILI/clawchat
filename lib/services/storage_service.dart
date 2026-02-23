@@ -55,6 +55,14 @@ class StorageService {
     await _serverBox?.delete(id);
   }
 
+  /// 按指定顺序重新保存服务器列表
+  Future<void> reorderServers(List<ServerConfig> servers) async {
+    await _serverBox?.clear();
+    for (final server in servers) {
+      await _serverBox?.put(server.id, server);
+    }
+  }
+
   /// 设置默认服务器
   Future<void> setDefaultServer(String id) async {
     final servers = getServers();
