@@ -16,6 +16,8 @@ class ServerConfig with _$ServerConfig {
     @HiveField(5) @Default(false) bool useTLS,
     @HiveField(6) @Default(false) bool isDefault,
     @HiveField(7) DateTime? lastConnected,
+    @HiveField(8) @Default('token') String authMode,
+    @HiveField(9) @Default('') String password,
   }) = _ServerConfig;
 
   factory ServerConfig.fromJson(Map<String, dynamic> json) =>
@@ -30,6 +32,12 @@ class ServerConfig with _$ServerConfig {
 
   /// 获取显示地址
   String get displayAddress => '$host:$port';
+
+  bool get isPasswordAuth => authMode == 'password';
+  bool get isTokenAuth => authMode != 'password';
+
+  /// 获取当前生效的认证凭证
+  String get activeCredential => isPasswordAuth ? password : token;
 
   /// 创建本地服务器配置
   factory ServerConfig.local({
@@ -48,18 +56,21 @@ class ServerConfig with _$ServerConfig {
     );
   }
 
-  /// 创建云服务器配置
+  /// 创建云服务器配置（密码认证）
   factory ServerConfig.cloud({
     required String name,
     required String domain,
-    required String token,
+    String? token,
+    String? password,
   }) {
     return ServerConfig(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: name,
       host: domain,
       port: 443,
-      token: token,
+      token: token ?? '',
+      password: password ?? '',
+      authMode: password != null ? 'password' : 'token',
       useTLS: true,
     );
   }

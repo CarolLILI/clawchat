@@ -333,14 +333,19 @@ class GatewayClient {
         'role': role,
         'scopes': scopes,
         'caps': [],
-        if (config.token.isNotEmpty)
+        if (config.isPasswordAuth && config.password.isNotEmpty)
+          'auth': {'password': config.password}
+        else if (config.token.isNotEmpty)
           'auth': {'token': config.token},
         if (devicePayload != null) 'device': devicePayload,
       },
     };
 
+    final authDesc = config.isPasswordAuth
+        ? 'password=${config.password.isNotEmpty ? "SET" : "EMPTY"}'
+        : 'token=${config.token.isNotEmpty ? "SET" : "EMPTY"}';
     print('[ClawChat] Sending connect handshake (id=$_connectRequestId)');
-    print('[ClawChat] Auth: token=${config.token.isNotEmpty ? "SET" : "EMPTY"}, device=${devicePayload != null ? "SET" : "NONE"}, nonce=${_connectNonce != null ? "SET" : "NONE"}');
+    print('[ClawChat] Auth: $authDesc, device=${devicePayload != null ? "SET" : "NONE"}, nonce=${_connectNonce != null ? "SET" : "NONE"}');
     _channel!.sink.add(jsonEncode(handshake));
   }
 

@@ -23,13 +23,15 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
   final _hostController = TextEditingController();
   final _portController = TextEditingController(text: '18789');
   final _tokenController = TextEditingController();
+  final _passwordController = TextEditingController();
   
   bool _isEditing = false;
   bool _useTLS = false;
   bool _isTesting = false;
   bool _testSuccess = false;
   String? _testError;
-  String? _serverId; // 保存服务器 ID，确保测试和保存使用同一个
+  String? _serverId;
+  String _authMode = 'password';
 
   @override
   void initState() {
@@ -41,7 +43,9 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
       _hostController.text = widget.server!.host;
       _portController.text = widget.server!.port.toString();
       _tokenController.text = widget.server!.token;
+      _passwordController.text = widget.server!.password;
       _useTLS = widget.server!.useTLS;
+      _authMode = widget.server!.authMode;
     } else {
       _serverId = const Uuid().v4();
     }
@@ -53,6 +57,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
     _hostController.dispose();
     _portController.dispose();
     _tokenController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -67,12 +72,11 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // 名称
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: '服务器名称 *',
-                hintText: '例如：家里的 MacBook',
+                hintText: '例如：腾讯云服务器',
                 prefixIcon: Icon(Icons.label),
               ),
               validator: (value) {
@@ -84,14 +88,12 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
             ),
             const SizedBox(height: 16),
 
-            // 地址类型说明
             const Text(
               '连接地址',
               style: AppTextStyles.bodyMedium,
             ),
             const SizedBox(height: 8),
 
-            // 服务器地址
             TextFormField(
               controller: _hostController,
               decoration: const InputDecoration(
@@ -108,7 +110,6 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
             ),
             const SizedBox(height: 16),
 
-            // 端口
             TextFormField(
               controller: _portController,
               decoration: const InputDecoration(
@@ -129,7 +130,6 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
             ),
             const SizedBox(height: 16),
 
-            // TLS 开关
             SwitchListTile(
               title: const Text('使用加密连接 (WSS)'),
               subtitle: const Text('云服务器建议开启'),
@@ -139,30 +139,76 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
             const Divider(),
             const SizedBox(height: 16),
 
-            // Token
-            TextFormField(
-              controller: _tokenController,
-              decoration: const InputDecoration(
-                labelText: 'Auth Token *',
-                hintText: '从 OpenClaw 配置中获取',
-                prefixIcon: Icon(Icons.key),
-              ),
-              obscureText: true,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return '请输入 Auth Token';
-                }
-                return null;
-              },
+            const Text(
+              '认证方式',
+              style: AppTextStyles.bodyMedium,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Token 在 ~/.openclaw/openclaw.json 中，gateway.auth.token',
-              style: AppTextStyles.caption,
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(
+                  value: 'password',
+                  label: Text('密码登录'),
+                  icon: Icon(Icons.lock),
+                ),
+                ButtonSegment(
+                  value: 'token',
+                  label: Text('Token'),
+                  icon: Icon(Icons.key),
+                ),
+              ],
+              selected: {_authMode},
+              onSelectionChanged: (selection) {
+                setState(() => _authMode = selection.first);
+              },
             ),
+            const SizedBox(height: 16),
+
+            if (_authMode == 'password') ...[
+              TextFormField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: '密码 *',
+                  hintText: '输入 Gateway 密码',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                obscureText: true,
+                validator: (value) {
+                  if (_authMode == 'password' && (value == null || value.isEmpty)) {
+                    return '请输入密码';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '密码在服务器 ~/.openclaw/openclaw.json 的 gateway.auth.password 中',
+                style: AppTextStyles.caption,
+              ),
+            ] else ...[
+              TextFormField(
+                controller: _tokenController,
+                decoration: const InputDecoration(
+                  labelText: 'Auth Token *',
+                  hintText: '从 OpenClaw 配置中获取',
+                  prefixIcon: Icon(Icons.key),
+                ),
+                obscureText: true,
+                validator: (value) {
+                  if (_authMode == 'token' && (value == null || value.isEmpty)) {
+                    return '请输入 Auth Token';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Token 在 ~/.openclaw/openclaw.json 中，gateway.auth.token',
+                style: AppTextStyles.caption,
+              ),
+            ],
             const SizedBox(height: 24),
 
-            // 测试连接
             if (_isTesting)
               const Center(child: CircularProgressIndicator())
             else if (_testSuccess)
@@ -210,7 +256,6 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
               ),
             const SizedBox(height: 16),
 
-            // 测试按钮
             OutlinedButton.icon(
               onPressed: _isTesting ? null : _testConnection,
               icon: const Icon(Icons.network_check),
@@ -218,7 +263,6 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
             ),
             const SizedBox(height: 24),
 
-            // 保存按钮
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -290,6 +334,8 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
       host: _hostController.text.trim(),
       port: int.parse(_portController.text.trim()),
       token: _tokenController.text.trim(),
+      password: _passwordController.text.trim(),
+      authMode: _authMode,
       useTLS: _useTLS,
       isDefault: widget.server?.isDefault ?? false,
     );
