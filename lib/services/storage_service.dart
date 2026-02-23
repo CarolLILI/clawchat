@@ -32,7 +32,18 @@ class StorageService {
 
   /// 获取所有服务器
   List<ServerConfig> getServers() {
-    return _serverBox?.values.toList() ?? [];
+    if (_serverBox == null) return [];
+    final servers = <ServerConfig>[];
+    for (final key in _serverBox!.keys) {
+      try {
+        final server = _serverBox!.get(key);
+        if (server != null) servers.add(server);
+      } catch (e) {
+        print('[ClawChat] Failed to read server $key, removing corrupted entry: $e');
+        _serverBox!.delete(key);
+      }
+    }
+    return servers;
   }
 
   /// 获取默认服务器
@@ -134,15 +145,37 @@ class ServerConfigAdapter extends TypeAdapter<ServerConfig> {
 
   @override
   ServerConfig read(BinaryReader reader) {
+    final id = reader.read() as String;
+    final name = reader.read() as String;
+    final host = reader.read() as String;
+    final port = reader.read() as int;
+    final token = reader.read() as String;
+    final useTLS = reader.read() as bool;
+    final isDefault = reader.read() as bool;
+    final lastConnected = reader.read() as DateTime?;
+
+    String authMode = 'token';
+    String password = '';
+    try {
+      final rawAuthMode = reader.read();
+      if (rawAuthMode is String) authMode = rawAuthMode;
+      final rawPassword = reader.read();
+      if (rawPassword is String) password = rawPassword;
+    } catch (_) {
+      // Old data without authMode/password fields
+    }
+
     return ServerConfig(
-      id: reader.read(),
-      name: reader.read(),
-      host: reader.read(),
-      port: reader.read(),
-      token: reader.read(),
-      useTLS: reader.read(),
-      isDefault: reader.read(),
-      lastConnected: reader.read(),
+      id: id,
+      name: name,
+      host: host,
+      port: port,
+      token: token,
+      useTLS: useTLS,
+      isDefault: isDefault,
+      lastConnected: lastConnected,
+      authMode: authMode,
+      password: password,
     );
   }
 
@@ -156,6 +189,8 @@ class ServerConfigAdapter extends TypeAdapter<ServerConfig> {
     writer.write(obj.useTLS);
     writer.write(obj.isDefault);
     writer.write(obj.lastConnected);
+    writer.write(obj.authMode);
+    writer.write(obj.password);
   }
 }
 

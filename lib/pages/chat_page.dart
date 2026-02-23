@@ -27,21 +27,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   void initState() {
     super.initState();
-    // 自动连接
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _connect();
-      _listenToConnectionState();
-    });
-  }
-
-  void _listenToConnectionState() {
-    // 监听连接状态变化
-    ref.read(connectionProvider(widget.server.id).notifier).client.stateStream.listen((state) {
-      print('ChatPage received state from stream: $state');
-      // 强制刷新UI
-      if (mounted) {
-        setState(() {});
-      }
     });
   }
 

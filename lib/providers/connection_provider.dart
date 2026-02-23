@@ -37,26 +37,31 @@ final connectionProvider = StateNotifierProvider.family<ConnectionNotifier, Gate
 final messageListProvider = StateNotifierProvider.family<MessageNotifier, List<Message>, String>(
   (ref, serverId) {
     final storage = ref.read(storageServiceProvider);
-    final connectionNotifier = ref.read(connectionProvider(serverId).notifier);
     final servers = storage.getServers();
     final config = servers.where((s) => s.id == serverId).firstOrNull;
     if (config == null) {
       throw Exception('Server not found: $serverId');
     }
     final messageNotifier = MessageNotifier(config, storage);
-    
+
+    // 通过 Riverpod 监听连接状态，不直接绑定 client 实例的 stream
+    ref.listen<GatewayConnectionState>(
+      connectionProvider(serverId),
+      (previous, next) {
+        if (next == GatewayConnectionState.connected) {
+          final client = ref.read(connectionProvider(serverId).notifier).client;
+          messageNotifier.setClient(client);
+        }
+      },
+    );
+
     // 如果已经连接，立即设置 client
-    if (connectionNotifier.client.currentState == GatewayConnectionState.connected) {
-      messageNotifier.setClient(connectionNotifier.client);
+    final currentState = ref.read(connectionProvider(serverId));
+    if (currentState == GatewayConnectionState.connected) {
+      final client = ref.read(connectionProvider(serverId).notifier).client;
+      messageNotifier.setClient(client);
     }
-    
-    // 监听状态变化
-    connectionNotifier.client.stateStream.listen((state) {
-      if (state == GatewayConnectionState.connected) {
-        messageNotifier.setClient(connectionNotifier.client);
-      }
-    });
-    
+
     return messageNotifier;
   },
 );
@@ -86,14 +91,21 @@ class ConnectionNotifier extends StateNotifier<GatewayConnectionState> {
   
   /// 更新配置并重建客户端
   void updateConfig(ServerConfig newConfig) {
-    if (config.id != newConfig.id || 
+    final configChanged = config.id != newConfig.id || 
         config.host != newConfig.host || 
+        config.port != newConfig.port ||
         config.token != newConfig.token ||
-        config.port != newConfig.port) {
-      print('Updating connection config');
-      config = newConfig;
+        config.password != newConfig.password ||
+        config.authMode != newConfig.authMode ||
+        config.useTLS != newConfig.useTLS;
+
+    config = newConfig;
+
+    if (configChanged) {
+      print('Updating connection config, recreating client');
       _client?.dispose();
       _createClient();
+      state = GatewayConnectionState.disconnected;
     }
   }
 
