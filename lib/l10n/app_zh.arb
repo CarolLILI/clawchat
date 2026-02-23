@@ -1,0 +1,176 @@
+{
+  "@@locale": "zh",
+
+  "appTitle": "ClawChat",
+  "exportConfig": "导出配置",
+  "importConfig": "导入配置",
+  "noServers": "还没有服务器",
+  "addServerHint": "添加 OpenClaw 服务器，开始与 AI 对话",
+  "addServer": "添加服务器",
+  "serverCount": "服务器 ({count})",
+  "@serverCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "confirmDelete": "确认删除",
+  "confirmDeleteMessage": "确定要删除 \"{name}\" 吗？",
+  "@confirmDeleteMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cancel": "取消",
+  "delete": "删除",
+  "serverDeleted": "服务器已删除",
+  "configBackupSubject": "ClawChat 配置备份",
+  "configExported": "配置已导出",
+  "exportFailed": "导出失败: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "cannotReadFile": "无法读取文件",
+  "importConfigTitle": "导入配置",
+  "importConfigMessage": "导入配置将合并到现有服务器列表中，是否继续？",
+  "importAction": "导入",
+  "configImported": "配置导入成功",
+  "importFailed": "导入失败: {error}",
+  "@importFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "editServer": "编辑服务器",
+  "basicInfo": "基本信息",
+  "nameLabel": "名称",
+  "nameHint": "例如：腾讯云服务器",
+  "pleaseEnterName": "请输入名称",
+  "connectionAddress": "连接地址",
+  "serverAddress": "服务器地址",
+  "addressHint": "192.168.1.100 或 example.com",
+  "pleaseEnterAddress": "请输入地址",
+  "portLabel": "端口",
+  "pleaseEnterPort": "请输入端口",
+  "invalidPort": "无效端口号",
+  "encryptedConnection": "加密连接 (WSS)",
+  "cloudServerRecommended": "云服务器建议开启",
+  "authMethod": "认证方式",
+  "passwordLabel": "密码",
+  "tokenLabel": "Token",
+  "enterGatewayPassword": "输入 Gateway 密码",
+  "pleaseEnterPassword": "请输入密码",
+  "passwordHelp": "密码位于服务器 ~/.openclaw/openclaw.json 的 gateway.auth.password",
+  "authTokenLabel": "Auth Token",
+  "getFromConfig": "从 OpenClaw 配置中获取",
+  "pleaseEnterToken": "请输入 Token",
+  "tokenHelp": "Token 位于 ~/.openclaw/openclaw.json 的 gateway.auth.token",
+  "connectionSuccess": "连接成功",
+  "connectionFailed": "连接失败",
+  "testConnection": "测试连接",
+  "save": "保存",
+  "serverUpdated": "服务器已更新",
+  "serverAdded": "服务器已添加",
+
+  "notConnectedToServer": "未连接到服务器",
+  "chatTitle": "小虾",
+  "connectingStatus": "连接中...",
+  "retry": "重试",
+  "disconnected": "未连接",
+  "connectAction": "连接",
+  "connected": "已连接",
+  "connectingTooltip": "连接中",
+  "connectionError": "连接错误",
+  "startChatting": "开始聊天吧",
+  "chatHint": "输入消息与小虾对话",
+  "suggestionHello": "你好",
+  "suggestionWriteCode": "帮我写代码",
+  "suggestionSummarize": "总结这篇文章",
+  "addressLabel": "地址",
+  "tlsLabel": "TLS",
+  "tlsEnabled": "已启用",
+  "tlsDisabled": "未启用",
+  "switchServer": "切换服务器",
+  "clearChatHistory": "清空聊天记录",
+  "serverSettings": "服务器设置",
+
+  "defaultBadge": "默认",
+  "addressCopied": "地址已复制",
+  "copyAddress": "复制地址",
+  "edit": "编辑",
+  "justNow": "刚刚",
+  "minutesAgo": "{minutes}分钟前",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "hoursAgo": "{hours}小时前",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": { "type": "int" }
+    }
+  },
+  "daysAgo": "{days}天前",
+  "@daysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "inputMessageHint": "输入消息...",
+
+  "errorCannotConnect": "无法连接到服务器 {address}\n请检查：\n• 服务器地址和端口是否正确\n• 设备是否与服务器在同一网络\n• 服务器是否已启动\n({detail})",
+  "@errorCannotConnect": {
+    "placeholders": {
+      "address": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "errorConnectionTimeout": "连接服务器超时 {address}\n请检查：\n• 服务器地址是否正确\n• 是否存在防火墙限制\n• 设备网络是否正常",
+  "@errorConnectionTimeout": {
+    "placeholders": {
+      "address": { "type": "String" }
+    }
+  },
+  "errorNetworkCheckFailed": "网络检查失败: {error}",
+  "@errorNetworkCheckFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "errorWebSocketHandshakeTimeout": "WebSocket 握手超时，服务器未响应 WebSocket 升级请求",
+  "errorWebSocketError": "WebSocket 连接错误: {error}",
+  "@errorWebSocketError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "errorServerClosedConnection": "服务器关闭了连接",
+  "errorServerClosedConnectionWithDetail": "服务器关闭了连接{detail}",
+  "@errorServerClosedConnectionWithDetail": {
+    "placeholders": {
+      "detail": { "type": "String" }
+    }
+  },
+  "errorGatewayHandshakeTimeout": "Gateway 协议握手超时\nWebSocket 已连接，但服务器未完成认证握手。\n请检查：\n• Auth Token 是否正确\n• 服务器 Gateway 版本是否兼容",
+  "errorWebSocketTimeout": "WebSocket 连接超时",
+  "errorConnectionRefused": "连接被拒绝\n服务器可能未运行 Gateway 服务",
+  "errorNetworkUnreachable": "网络不可达\n请检查设备网络连接",
+  "errorConnectionReset": "连接被重置\n服务器可能不支持 WebSocket 连接",
+  "errorTlsCertificate": "TLS 证书错误\n如果是局域网连接，请关闭加密连接 (WSS)",
+  "errorGenericConnection": "连接失败: {error}",
+  "@errorGenericConnection": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "errorAuthFailed": "认证失败: {error}",
+  "@errorAuthFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
+}

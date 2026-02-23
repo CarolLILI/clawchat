@@ -7,6 +7,8 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../l10n/app_localizations.dart';
+
 import '../constants/app_theme.dart';
 import '../models/server_config.dart';
 import '../providers/server_provider.dart';
@@ -29,12 +31,13 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
   Widget build(BuildContext context) {
     final servers = ref.watch(serverListProvider);
     final defaultServer = ref.watch(defaultServerProvider);
+    final l10n = S.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'ClawChat',
+        title: Text(
+          l10n.appTitle,
           style: AppTextStyles.headlineMedium,
         ),
         elevation: 0,
@@ -42,12 +45,12 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
           IconButton(
             key: _exportKey,
             icon: const Icon(Icons.ios_share_outlined, size: 20),
-            tooltip: '导出配置',
+            tooltip: l10n.exportConfig,
             onPressed: _exportConfig,
           ),
           IconButton(
             icon: const Icon(Icons.download_outlined, size: 20),
-            tooltip: '导入配置',
+            tooltip: l10n.importConfig,
             onPressed: () => _importConfig(),
           ),
           const SizedBox(width: 4),
@@ -64,6 +67,7 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = S.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 80),
@@ -84,13 +88,13 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              '还没有服务器',
+            Text(
+              l10n.noServers,
               style: AppTextStyles.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              '添加 OpenClaw 服务器，开始与 AI 对话',
+              l10n.addServerHint,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -99,7 +103,7 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
             ElevatedButton.icon(
               onPressed: _addServer,
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('添加服务器'),
+              label: Text(l10n.addServer),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -125,7 +129,7 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Text(
-              '服务器 (${servers.length})',
+              S.of(context).serverCount(servers.length),
               style: AppTextStyles.caption,
             ),
           ),
@@ -203,25 +207,26 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
   }
 
   void _deleteServer(ServerConfig server) {
+    final l10n = S.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('确认删除'),
-        content: Text('确定要删除 "${server.name}" 吗？'),
+        title: Text(l10n.confirmDelete),
+        content: Text(l10n.confirmDeleteMessage(server.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(serverListProvider.notifier).deleteServer(server.id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('服务器已删除')),
+                SnackBar(content: Text(l10n.serverDeleted)),
               );
             },
-            child: Text('删除', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error)),
+            child: Text(l10n.delete, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error)),
           ),
         ],
       ),
@@ -256,10 +261,12 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
         sharePositionOrigin = position & renderBox.size;
       }
 
+      final l10n = S.of(context);
+
       // 分享文件
       final result = await Share.shareXFiles(
         [XFile(filePath)],
-        subject: 'ClawChat 配置备份',
+        subject: l10n.configBackupSubject,
         sharePositionOrigin: sharePositionOrigin,
       );
 
@@ -270,13 +277,13 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
 
       if (mounted && result.status == ShareResultStatus.success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('配置已导出')),
+          SnackBar(content: Text(l10n.configExported)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('导出失败: $e')),
+          SnackBar(content: Text(S.of(context).exportFailed(e.toString()))),
         );
       }
     }
@@ -295,25 +302,27 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
       
       final file = result.files.first;
       if (file.bytes == null) {
-        throw Exception('无法读取文件');
+        throw Exception(S.of(context).cannotReadFile);
       }
       
       final jsonString = String.fromCharCodes(file.bytes!);
       
+      final l10n = S.of(context);
+
       // 确认导入
       final confirm = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('导入配置'),
-          content: const Text('导入配置将合并到现有服务器列表中，是否继续？'),
+          title: Text(l10n.importConfigTitle),
+          content: Text(l10n.importConfigMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('取消'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('导入'),
+              child: Text(l10n.importAction),
             ),
           ],
         ),
@@ -326,13 +335,13 @@ class _ServerListPageState extends ConsumerState<ServerListPage> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('配置导入成功')),
+          SnackBar(content: Text(S.of(context).configImported)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('导入失败: $e')),
+          SnackBar(content: Text(S.of(context).importFailed(e.toString()))),
         );
       }
     }

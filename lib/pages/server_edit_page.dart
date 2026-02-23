@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_localizations.dart';
+
 import '../constants/app_theme.dart';
+import '../l10n/error_localizations.dart';
 import '../models/server_config.dart';
 import '../providers/server_provider.dart';
 import '../services/gateway_client.dart';
@@ -29,6 +32,8 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
   bool _isTesting = false;
   bool _testSuccess = false;
   String? _testError;
+  GatewayErrorType? _testErrorType;
+  Map<String, String> _testErrorParams = {};
   String? _serverId;
   String _authMode = 'password';
 
@@ -62,58 +67,57 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = S.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? '编辑服务器' : '添加服务器'),
+        title: Text(_isEditing ? l10n.editServer : l10n.addServer),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           children: [
-            // -- 基本信息 --
-            _buildSectionHeader('基本信息'),
+            _buildSectionHeader(l10n.basicInfo),
             _buildCard([
               _buildTextField(
                 controller: _nameController,
-                label: '名称',
-                hint: '例如：腾讯云服务器',
+                label: l10n.nameLabel,
+                hint: l10n.nameHint,
                 icon: Icons.label_outline,
-                validator: (v) => (v == null || v.isEmpty) ? '请输入名称' : null,
+                validator: (v) => (v == null || v.isEmpty) ? l10n.pleaseEnterName : null,
               ),
             ]),
 
             const SizedBox(height: 20),
 
-            // -- 连接地址 --
-            _buildSectionHeader('连接地址'),
+            _buildSectionHeader(l10n.connectionAddress),
             _buildCard([
               _buildTextField(
                 controller: _hostController,
-                label: '服务器地址',
-                hint: '192.168.1.100 或 example.com',
+                label: l10n.serverAddress,
+                hint: l10n.addressHint,
                 icon: Icons.dns_outlined,
-                validator: (v) => (v == null || v.isEmpty) ? '请输入地址' : null,
+                validator: (v) => (v == null || v.isEmpty) ? l10n.pleaseEnterAddress : null,
               ),
               const Divider(height: 0.5, indent: 44, color: AppColors.divider),
               _buildTextField(
                 controller: _portController,
-                label: '端口',
+                label: l10n.portLabel,
                 hint: '18789',
                 icon: Icons.tag,
                 keyboardType: TextInputType.number,
                 validator: (v) {
-                  if (v == null || v.isEmpty) return '请输入端口';
+                  if (v == null || v.isEmpty) return l10n.pleaseEnterPort;
                   final port = int.tryParse(v);
-                  if (port == null || port < 1 || port > 65535) return '无效端口号';
+                  if (port == null || port < 1 || port > 65535) return l10n.invalidPort;
                   return null;
                 },
               ),
               const Divider(height: 0.5, indent: 44, color: AppColors.divider),
               _buildSwitchTile(
                 icon: Icons.lock_outlined,
-                title: '加密连接 (WSS)',
-                subtitle: '云服务器建议开启',
+                title: l10n.encryptedConnection,
+                subtitle: l10n.cloudServerRecommended,
                 value: _useTLS,
                 onChanged: (v) => setState(() => _useTLS = v),
               ),
@@ -121,22 +125,21 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
 
             const SizedBox(height: 20),
 
-            // -- 认证方式 --
-            _buildSectionHeader('认证方式'),
+            _buildSectionHeader(l10n.authMethod),
             _buildCard([
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: SegmentedButton<String>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: 'password',
-                      label: Text('密码'),
-                      icon: Icon(Icons.lock_outline, size: 16),
+                      label: Text(l10n.passwordLabel),
+                      icon: const Icon(Icons.lock_outline, size: 16),
                     ),
                     ButtonSegment(
                       value: 'token',
-                      label: Text('Token'),
-                      icon: Icon(Icons.key_outlined, size: 16),
+                      label: Text(l10n.tokenLabel),
+                      icon: const Icon(Icons.key_outlined, size: 16),
                     ),
                   ],
                   selected: {_authMode},
@@ -151,31 +154,30 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
               if (_authMode == 'password') ...[
                 _buildTextField(
                   controller: _passwordController,
-                  label: '密码',
-                  hint: '输入 Gateway 密码',
+                  label: l10n.passwordLabel,
+                  hint: l10n.enterGatewayPassword,
                   icon: Icons.password_outlined,
                   obscureText: true,
                   validator: (v) =>
-                      _authMode == 'password' && (v == null || v.isEmpty) ? '请输入密码' : null,
+                      _authMode == 'password' && (v == null || v.isEmpty) ? l10n.pleaseEnterPassword : null,
                 ),
-                _buildHelpText('密码位于服务器 ~/.openclaw/openclaw.json 的 gateway.auth.password'),
+                _buildHelpText(l10n.passwordHelp),
               ] else ...[
                 _buildTextField(
                   controller: _tokenController,
-                  label: 'Auth Token',
-                  hint: '从 OpenClaw 配置中获取',
+                  label: l10n.authTokenLabel,
+                  hint: l10n.getFromConfig,
                   icon: Icons.key_outlined,
                   obscureText: true,
                   validator: (v) =>
-                      _authMode == 'token' && (v == null || v.isEmpty) ? '请输入 Token' : null,
+                      _authMode == 'token' && (v == null || v.isEmpty) ? l10n.pleaseEnterToken : null,
                 ),
-                _buildHelpText('Token 位于 ~/.openclaw/openclaw.json 的 gateway.auth.token'),
+                _buildHelpText(l10n.tokenHelp),
               ],
             ]),
 
             const SizedBox(height: 24),
 
-            // -- 测试结果 --
             if (_isTesting)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
@@ -191,23 +193,24 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
               _buildResultBanner(
                 icon: Icons.check_circle_outline,
                 color: AppColors.online,
-                title: '连接成功',
+                title: l10n.connectionSuccess,
               )
             else if (_testError != null)
               _buildResultBanner(
                 icon: Icons.error_outline,
                 color: AppColors.error,
-                title: '连接失败',
-                detail: _testError,
+                title: l10n.connectionFailed,
+                detail: _testErrorType != null
+                    ? localizeGatewayError(l10n, _testErrorType!, _testErrorParams)
+                    : _testError,
               ),
 
             const SizedBox(height: 12),
 
-            // -- 操作按钮 --
             OutlinedButton.icon(
               onPressed: _isTesting ? null : _testConnection,
               icon: const Icon(Icons.wifi_tethering, size: 18),
-              label: const Text('测试连接'),
+              label: Text(l10n.testConnection),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
@@ -223,7 +226,7 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
                     borderRadius: BorderRadius.circular(AppRadius.large),
                   ),
                 ),
-                child: Text(_isEditing ? '保存' : '添加服务器'),
+                child: Text(_isEditing ? l10n.save : l10n.addServer),
               ),
             ),
             const SizedBox(height: 32),
@@ -382,6 +385,8 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
       setState(() {
         _testSuccess = result.success;
         _testError = result.error;
+        _testErrorType = result.errorType;
+        _testErrorParams = result.errorParams;
         _isTesting = false;
       });
 
@@ -407,9 +412,10 @@ class _ServerEditPageState extends ConsumerState<ServerEditPage> {
       ref.read(serverListProvider.notifier).addServer(config);
     }
 
+    final l10n = S.of(context);
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_isEditing ? '服务器已更新' : '服务器已添加')),
+      SnackBar(content: Text(_isEditing ? l10n.serverUpdated : l10n.serverAdded)),
     );
   }
 

@@ -1,0 +1,176 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "ClawChat",
+  "exportConfig": "Export Config",
+  "importConfig": "Import Config",
+  "noServers": "No Servers Yet",
+  "addServerHint": "Add an OpenClaw server to start chatting with AI",
+  "addServer": "Add Server",
+  "serverCount": "Servers ({count})",
+  "@serverCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "confirmDelete": "Confirm Delete",
+  "confirmDeleteMessage": "Are you sure you want to delete \"{name}\"?",
+  "@confirmDeleteMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "serverDeleted": "Server deleted",
+  "configBackupSubject": "ClawChat Config Backup",
+  "configExported": "Config exported",
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "cannotReadFile": "Cannot read file",
+  "importConfigTitle": "Import Config",
+  "importConfigMessage": "Imported config will be merged with the existing server list. Continue?",
+  "importAction": "Import",
+  "configImported": "Config imported successfully",
+  "importFailed": "Import failed: {error}",
+  "@importFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "editServer": "Edit Server",
+  "basicInfo": "Basic Info",
+  "nameLabel": "Name",
+  "nameHint": "e.g. My Cloud Server",
+  "pleaseEnterName": "Please enter a name",
+  "connectionAddress": "Connection Address",
+  "serverAddress": "Server Address",
+  "addressHint": "192.168.1.100 or example.com",
+  "pleaseEnterAddress": "Please enter an address",
+  "portLabel": "Port",
+  "pleaseEnterPort": "Please enter a port",
+  "invalidPort": "Invalid port number",
+  "encryptedConnection": "Encrypted Connection (WSS)",
+  "cloudServerRecommended": "Recommended for cloud servers",
+  "authMethod": "Authentication",
+  "passwordLabel": "Password",
+  "tokenLabel": "Token",
+  "enterGatewayPassword": "Enter Gateway password",
+  "pleaseEnterPassword": "Please enter a password",
+  "passwordHelp": "Password is at gateway.auth.password in ~/.openclaw/openclaw.json",
+  "authTokenLabel": "Auth Token",
+  "getFromConfig": "Get from OpenClaw config",
+  "pleaseEnterToken": "Please enter a token",
+  "tokenHelp": "Token is at gateway.auth.token in ~/.openclaw/openclaw.json",
+  "connectionSuccess": "Connection Successful",
+  "connectionFailed": "Connection Failed",
+  "testConnection": "Test Connection",
+  "save": "Save",
+  "serverUpdated": "Server updated",
+  "serverAdded": "Server added",
+
+  "notConnectedToServer": "Not connected to server",
+  "chatTitle": "ClawChat",
+  "connectingStatus": "Connecting...",
+  "retry": "Retry",
+  "disconnected": "Disconnected",
+  "connectAction": "Connect",
+  "connected": "Connected",
+  "connectingTooltip": "Connecting",
+  "connectionError": "Connection Error",
+  "startChatting": "Start Chatting",
+  "chatHint": "Type a message to chat",
+  "suggestionHello": "Hello",
+  "suggestionWriteCode": "Help me write code",
+  "suggestionSummarize": "Summarize this article",
+  "addressLabel": "Address",
+  "tlsLabel": "TLS",
+  "tlsEnabled": "Enabled",
+  "tlsDisabled": "Disabled",
+  "switchServer": "Switch Server",
+  "clearChatHistory": "Clear Chat History",
+  "serverSettings": "Server Settings",
+
+  "defaultBadge": "Default",
+  "addressCopied": "Address copied",
+  "copyAddress": "Copy Address",
+  "edit": "Edit",
+  "justNow": "Just now",
+  "minutesAgo": "{minutes}m ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "hoursAgo": "{hours}h ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": { "type": "int" }
+    }
+  },
+  "daysAgo": "{days}d ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "inputMessageHint": "Type a message...",
+
+  "errorCannotConnect": "Cannot connect to server {address}\nPlease check:\n• Server address and port are correct\n• Device is on the same network as the server\n• Server is running\n({detail})",
+  "@errorCannotConnect": {
+    "placeholders": {
+      "address": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "errorConnectionTimeout": "Connection to {address} timed out\nPlease check:\n• Server address is correct\n• No firewall restrictions\n• Device network is working",
+  "@errorConnectionTimeout": {
+    "placeholders": {
+      "address": { "type": "String" }
+    }
+  },
+  "errorNetworkCheckFailed": "Network check failed: {error}",
+  "@errorNetworkCheckFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "errorWebSocketHandshakeTimeout": "WebSocket handshake timed out, server did not respond to upgrade request",
+  "errorWebSocketError": "WebSocket connection error: {error}",
+  "@errorWebSocketError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "errorServerClosedConnection": "Server closed the connection",
+  "errorServerClosedConnectionWithDetail": "Server closed the connection{detail}",
+  "@errorServerClosedConnectionWithDetail": {
+    "placeholders": {
+      "detail": { "type": "String" }
+    }
+  },
+  "errorGatewayHandshakeTimeout": "Gateway protocol handshake timed out\nWebSocket connected, but server did not complete authentication.\nPlease check:\n• Auth Token is correct\n• Server Gateway version is compatible",
+  "errorWebSocketTimeout": "WebSocket connection timed out",
+  "errorConnectionRefused": "Connection refused\nServer may not be running Gateway service",
+  "errorNetworkUnreachable": "Network unreachable\nPlease check device network connection",
+  "errorConnectionReset": "Connection reset\nServer may not support WebSocket connections",
+  "errorTlsCertificate": "TLS certificate error\nFor LAN connections, try disabling encrypted connection (WSS)",
+  "errorGenericConnection": "Connection failed: {error}",
+  "@errorGenericConnection": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "errorAuthFailed": "Authentication failed: {error}",
+  "@errorAuthFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
+}

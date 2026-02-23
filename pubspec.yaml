@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   
   # 状态管理
   flutter_riverpod: ^2.4.5
@@ -49,6 +52,7 @@ dev_dependencies:
   riverpod_generator: ^2.3.0
 
 flutter:
+  generate: true
   uses-material-design: true
   
   # 如果需要添加字体或图片资源

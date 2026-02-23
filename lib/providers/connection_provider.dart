@@ -111,6 +111,10 @@ class ConnectionNotifier extends StateNotifier<GatewayConnectionState> {
 
   String? _lastError;
   String? get lastError => _lastError;
+  GatewayErrorType? _lastErrorType;
+  GatewayErrorType? get lastErrorType => _lastErrorType;
+  Map<String, String> _lastErrorParams = {};
+  Map<String, String> get lastErrorParams => _lastErrorParams;
 
   /// 连接（带重试，网络不可达时不重试）
   Future<void> connect() async {
@@ -130,20 +134,24 @@ class ConnectionNotifier extends StateNotifier<GatewayConnectionState> {
         final result = await _client!.connect();
         if (result.success) {
           _lastError = null;
+          _lastErrorType = null;
+          _lastErrorParams = {};
           return;
         } else {
           _lastError = result.error;
+          _lastErrorType = result.errorType;
+          _lastErrorParams = result.errorParams;
           print('Connection failed (attempt ${retries + 1}): ${result.error}');
-          // 网络不可达类错误不需要重试
-          if (result.error != null && (
-              result.error!.contains('无法连接') ||
-              result.error!.contains('连接服务器超时') ||
-              result.error!.contains('网络不可达'))) {
+          if (result.errorType == GatewayErrorType.cannotConnect ||
+              result.errorType == GatewayErrorType.connectionTimeout ||
+              result.errorType == GatewayErrorType.networkUnreachable) {
             break;
           }
         }
       } catch (e) {
         _lastError = e.toString();
+        _lastErrorType = null;
+        _lastErrorParams = {};
         print('Connection failed (attempt ${retries + 1}): $e');
       }
       retries++;
@@ -207,37 +215,30 @@ class MessageNotifier extends StateNotifier<List<Message>> {
     });
   }
 
-  /// 发送消息
-  Future<void> sendMessage(String text) async {
-    // 检查连接状态
+  /// 发送消息。当未连接时返回 false，UI 层负责显示本地化错误。
+  Future<bool> sendMessage(String text) async {
     if (_client == null || _client!.currentState != GatewayConnectionState.connected) {
-      final errorMessage = Message.assistant(
-        content: '发送失败: 未连接到服务器',
-      );
-      state = [...state, errorMessage];
-      return;
+      return false;
     }
     
-    // 添加用户消息
     final userMessage = Message.user(content: text);
     state = [...state, userMessage];
     await _storage.saveMessage(config.id, userMessage);
 
-    // 添加思考中消息
     final thinkingMessage = Message.thinking();
     state = [...state, thinkingMessage];
 
-    // 发送
     try {
       _client!.sendMessage(text);
+      return true;
     } catch (e) {
-      // 更新思考中消息为错误
       final errorMessage = thinkingMessage.copyWith(
-        content: '发送失败: $e',
+        content: e.toString(),
         isComplete: true,
         error: e.toString(),
       );
       state = [...state.sublist(0, state.length - 1), errorMessage];
+      return false;
     }
   }
 

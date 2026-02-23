@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'l10n/app_localizations.dart';
 
 import 'constants/app_theme.dart';
 import 'pages/server_list_page.dart';
@@ -26,6 +27,8 @@ class ClawChatApp extends StatelessWidget {
     return MaterialApp(
       title: 'ClawChat',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: S.localizationsDelegates,
+      supportedLocales: S.supportedLocales,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(

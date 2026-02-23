@@ -19,10 +19,34 @@ enum GatewayConnectionState {
   error,
 }
 
+enum GatewayErrorType {
+  cannotConnect,
+  connectionTimeout,
+  networkCheckFailed,
+  webSocketHandshakeTimeout,
+  webSocketError,
+  serverClosedConnection,
+  gatewayHandshakeTimeout,
+  webSocketTimeout,
+  connectionRefused,
+  networkUnreachable,
+  connectionReset,
+  tlsCertificate,
+  genericConnection,
+  authFailed,
+}
+
 class ConnectionResult {
   final bool success;
   final String? error;
-  ConnectionResult({required this.success, this.error});
+  final GatewayErrorType? errorType;
+  final Map<String, String> errorParams;
+  ConnectionResult({
+    required this.success,
+    this.error,
+    this.errorType,
+    this.errorParams = const {},
+  });
 }
 
 class GatewayClient {
@@ -53,6 +77,10 @@ class GatewayClient {
 
   String? _lastError;
   String? get lastError => _lastError;
+  GatewayErrorType? _lastErrorType;
+  GatewayErrorType? get lastErrorType => _lastErrorType;
+  Map<String, String> _lastErrorParams = {};
+  Map<String, String> get lastErrorParams => _lastErrorParams;
 
   Future<ConnectionResult> _checkReachability() async {
     try {
@@ -66,22 +94,29 @@ class GatewayClient {
       print('[ClawChat] Server is reachable');
       return ConnectionResult(success: true);
     } on SocketException catch (e) {
-      final msg = '无法连接到服务器 ${config.host}:${config.port}\n'
-          '请检查：\n'
-          '• 服务器地址和端口是否正确\n'
-          '• 设备是否与服务器在同一网络\n'
-          '• 服务器是否已启动\n'
-          '(${e.message})';
-      return ConnectionResult(success: false, error: msg);
+      return ConnectionResult(
+        success: false,
+        error: e.message,
+        errorType: GatewayErrorType.cannotConnect,
+        errorParams: {
+          'address': '${config.host}:${config.port}',
+          'detail': e.message,
+        },
+      );
     } on TimeoutException {
-      final msg = '连接服务器超时 ${config.host}:${config.port}\n'
-          '请检查：\n'
-          '• 服务器地址是否正确\n'
-          '• 是否存在防火墙限制\n'
-          '• 设备网络是否正常';
-      return ConnectionResult(success: false, error: msg);
+      return ConnectionResult(
+        success: false,
+        error: 'timeout',
+        errorType: GatewayErrorType.connectionTimeout,
+        errorParams: {'address': '${config.host}:${config.port}'},
+      );
     } catch (e) {
-      return ConnectionResult(success: false, error: '网络检查失败: $e');
+      return ConnectionResult(
+        success: false,
+        error: e.toString(),
+        errorType: GatewayErrorType.networkCheckFailed,
+        errorParams: {'error': e.toString()},
+      );
     }
   }
 
@@ -121,8 +156,7 @@ class GatewayClient {
       await _channel!.ready.timeout(
         const Duration(seconds: 8),
         onTimeout: () {
-          throw TimeoutException(
-              'WebSocket 握手超时，服务器未响应 WebSocket 升级请求');
+          throw TimeoutException('ws_handshake_timeout');
         },
       );
       print('[ClawChat] WebSocket connected');
@@ -133,11 +167,17 @@ class GatewayClient {
         (data) => _handleMessage(data, completer),
         onError: (error) {
           print('[ClawChat] WebSocket error: $error');
-          _lastError = 'WebSocket 连接错误: $error';
+          _lastError = error.toString();
+          _lastErrorType = GatewayErrorType.webSocketError;
+          _lastErrorParams = {'error': error.toString()};
           _updateState(GatewayConnectionState.error);
           if (!completer.isCompleted) {
-            completer.complete(
-                ConnectionResult(success: false, error: _lastError));
+            completer.complete(ConnectionResult(
+              success: false,
+              error: _lastError,
+              errorType: GatewayErrorType.webSocketError,
+              errorParams: {'error': error.toString()},
+            ));
           }
         },
         onDone: () {
@@ -148,10 +188,15 @@ class GatewayClient {
           if (!completer.isCompleted) {
             final reason = _channel?.closeReason;
             final code = _channel?.closeCode;
-            final msg = '服务器关闭了连接'
+            final detail =
                 '${code != null ? ' (code: $code)' : ''}'
                 '${reason != null && reason.isNotEmpty ? ': $reason' : ''}';
-            completer.complete(ConnectionResult(success: false, error: msg));
+            completer.complete(ConnectionResult(
+              success: false,
+              error: 'server_closed',
+              errorType: GatewayErrorType.serverClosedConnection,
+              errorParams: {'detail': detail},
+            ));
           }
         },
       );
@@ -167,50 +212,69 @@ class GatewayClient {
 
       Timer(const Duration(seconds: 10), () {
         if (!completer.isCompleted) {
-          _lastError = 'Gateway 协议握手超时\n'
-              'WebSocket 已连接，但服务器未完成认证握手。\n'
-              '请检查：\n'
-              '• Auth Token 是否正确\n'
-              '• 服务器 Gateway 版本是否兼容';
+          _lastError = 'gateway_handshake_timeout';
+          _lastErrorType = GatewayErrorType.gatewayHandshakeTimeout;
+          _lastErrorParams = {};
           print('[ClawChat] Handshake timeout');
           _updateState(GatewayConnectionState.error);
-          completer.complete(
-              ConnectionResult(success: false, error: _lastError));
+          completer.complete(ConnectionResult(
+            success: false,
+            error: _lastError,
+            errorType: GatewayErrorType.gatewayHandshakeTimeout,
+          ));
         }
       });
 
       return await completer.future;
     } on TimeoutException catch (e) {
-      _lastError = e.message ?? 'WebSocket 连接超时';
+      final isWsHandshake = e.message == 'ws_handshake_timeout';
+      final errorType = isWsHandshake
+          ? GatewayErrorType.webSocketHandshakeTimeout
+          : GatewayErrorType.webSocketTimeout;
+      _lastError = e.message ?? 'timeout';
+      _lastErrorType = errorType;
+      _lastErrorParams = {};
       print('[ClawChat] Timeout: ${e.message}');
       _updateState(GatewayConnectionState.error);
       await _cleanup();
-      return ConnectionResult(success: false, error: _lastError);
+      return ConnectionResult(
+        success: false,
+        error: _lastError,
+        errorType: errorType,
+      );
     } catch (e) {
-      _lastError = _formatConnectionError(e);
+      final classified = _classifyConnectionError(e);
+      _lastError = e.toString();
+      _lastErrorType = classified.type;
+      _lastErrorParams = classified.params;
       print('[ClawChat] Connection error: $e');
       _updateState(GatewayConnectionState.error);
-      return ConnectionResult(success: false, error: _lastError);
+      return ConnectionResult(
+        success: false,
+        error: _lastError,
+        errorType: classified.type,
+        errorParams: classified.params,
+      );
     }
   }
 
-  String _formatConnectionError(dynamic error) {
+  ({GatewayErrorType type, Map<String, String> params}) _classifyConnectionError(dynamic error) {
     final msg = error.toString();
     if (msg.contains('Connection refused')) {
-      return '连接被拒绝\n服务器可能未运行 Gateway 服务';
+      return (type: GatewayErrorType.connectionRefused, params: const {});
     }
     if (msg.contains('No route to host') ||
         msg.contains('Network is unreachable')) {
-      return '网络不可达\n请检查设备网络连接';
+      return (type: GatewayErrorType.networkUnreachable, params: const {});
     }
     if (msg.contains('Connection reset')) {
-      return '连接被重置\n服务器可能不支持 WebSocket 连接';
+      return (type: GatewayErrorType.connectionReset, params: const {});
     }
     if (msg.contains('HandshakeException') ||
         msg.contains('CERTIFICATE')) {
-      return 'TLS 证书错误\n如果是局域网连接，请关闭加密连接 (WSS)';
+      return (type: GatewayErrorType.tlsCertificate, params: const {});
     }
-    return '连接失败: $msg';
+    return (type: GatewayErrorType.genericConnection, params: {'error': msg});
   }
 
   void _handleMessage(dynamic data, Completer<ConnectionResult> completer) {
@@ -246,12 +310,18 @@ class GatewayClient {
         } else {
           final errorMsg =
               response['error']?['message'] ?? 'Unknown error';
-          _lastError = '认证失败: $errorMsg';
+          _lastError = errorMsg;
+          _lastErrorType = GatewayErrorType.authFailed;
+          _lastErrorParams = {'error': errorMsg};
           print('[ClawChat] Handshake rejected: $errorMsg');
           _updateState(GatewayConnectionState.error);
           if (!completer.isCompleted) {
-            completer
-                .complete(ConnectionResult(success: false, error: _lastError));
+            completer.complete(ConnectionResult(
+              success: false,
+              error: _lastError,
+              errorType: GatewayErrorType.authFailed,
+              errorParams: {'error': errorMsg},
+            ));
           }
         }
         return;

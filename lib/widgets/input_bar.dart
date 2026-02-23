@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 import '../../constants/app_theme.dart';
 
@@ -70,7 +71,7 @@ class _InputBarState extends State<InputBar> {
                     focusNode: _focusNode,
                     enabled: widget.isEnabled,
                     decoration: InputDecoration(
-                      hintText: widget.isEnabled ? '输入消息...' : '未连接到服务器',
+                      hintText: widget.isEnabled ? S.of(context).inputMessageHint : S.of(context).notConnectedToServer,
                       hintStyle: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.textTertiary,
                       ),

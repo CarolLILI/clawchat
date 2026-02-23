@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
+
 import '../constants/app_theme.dart';
+import '../l10n/error_localizations.dart';
 import '../models/server_config.dart';
 import '../providers/connection_provider.dart';
 import '../services/gateway_client.dart';
@@ -53,7 +56,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       _scrollToBottom();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('未连接到服务器')),
+        SnackBar(content: Text(S.of(context).notConnectedToServer)),
       );
     }
   }
@@ -82,7 +85,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('小虾', style: AppTextStyles.appBarTitle),
+              Text(S.of(context).chatTitle, style: AppTextStyles.appBarTitle),
               Text(
                 widget.server.displayAddress,
                 style: AppTextStyles.appBarSubtitle,
@@ -114,7 +117,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                   const SizedBox(width: 8),
-                  Text('连接中...', style: AppTextStyles.caption.copyWith(color: AppColors.primary)),
+                  Text(S.of(context).connectingStatus, style: AppTextStyles.caption.copyWith(color: AppColors.primary)),
                 ],
               ),
             ),
@@ -131,18 +134,29 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       const Icon(Icons.error_outline, size: 14, color: AppColors.error),
                       const SizedBox(width: 8),
                       Text(
-                        '连接失败',
+                        S.of(context).connectionFailed,
                         style: AppTextStyles.caption.copyWith(color: AppColors.error),
                       ),
                       TextButton(
                         onPressed: () => ref.read(connectionProvider(widget.server.id).notifier).reconnect(),
-                        child: const Text('重试'),
+                        child: Text(S.of(context).retry),
                       ),
                     ],
                   ),
                   Consumer(
                     builder: (context, ref, child) {
-                      final error = ref.read(connectionProvider(widget.server.id).notifier).lastError;
+                      final notifier = ref.read(connectionProvider(widget.server.id).notifier);
+                      final errorType = notifier.lastErrorType;
+                      if (errorType != null) {
+                        return Text(
+                          localizeGatewayError(S.of(context), errorType, notifier.lastErrorParams),
+                          style: AppTextStyles.captionSmall.copyWith(color: AppColors.error),
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }
+                      final error = notifier.lastError;
                       if (error != null) {
                         return Text(
                           error,
@@ -169,12 +183,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   const Icon(Icons.cloud_off_outlined, size: 14, color: AppColors.textSecondary),
                   const SizedBox(width: 8),
                   Text(
-                    '未连接',
+                    S.of(context).disconnected,
                     style: AppTextStyles.caption,
                   ),
                   TextButton(
                     onPressed: _connect,
-                    child: const Text('连接'),
+                    child: Text(S.of(context).connectAction),
                   ),
                 ],
               ),
@@ -206,25 +220,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _buildConnectionStatus(GatewayConnectionState state) {
+    final l10n = S.of(context);
     Color color;
     String tooltip;
     
     switch (state) {
       case GatewayConnectionState.connected:
         color = AppColors.online;
-        tooltip = '已连接';
+        tooltip = l10n.connected;
         break;
       case GatewayConnectionState.connecting:
         color = AppColors.warning;
-        tooltip = '连接中';
+        tooltip = l10n.connectingTooltip;
         break;
       case GatewayConnectionState.error:
         color = AppColors.error;
-        tooltip = '连接错误';
+        tooltip = l10n.connectionError;
         break;
       default:
         color = AppColors.offline;
-        tooltip = '未连接';
+        tooltip = l10n.disconnected;
     }
 
     return Tooltip(
@@ -242,6 +257,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = S.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 80),
@@ -262,13 +278,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              '开始聊天吧',
+            Text(
+              l10n.startChatting,
               style: AppTextStyles.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              '输入消息与小虾对话',
+              l10n.chatHint,
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 24),
@@ -276,9 +292,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildSuggestionChip('你好'),
-                _buildSuggestionChip('帮我写代码'),
-                _buildSuggestionChip('总结这篇文章'),
+                _buildSuggestionChip(l10n.suggestionHello),
+                _buildSuggestionChip(l10n.suggestionWriteCode),
+                _buildSuggestionChip(l10n.suggestionSummarize),
               ],
             ),
           ],
@@ -311,12 +327,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             children: [
               Text(widget.server.name, style: AppTextStyles.headlineMedium),
               const SizedBox(height: 16),
-              _buildInfoRow(Icons.link_outlined, '地址', widget.server.displayAddress),
+              _buildInfoRow(Icons.link_outlined, S.of(context).addressLabel, widget.server.displayAddress),
               const SizedBox(height: 8),
               _buildInfoRow(
                 widget.server.useTLS ? Icons.lock_outlined : Icons.lock_open_outlined,
-                'TLS',
-                widget.server.useTLS ? '已启用' : '未启用',
+                S.of(context).tlsLabel,
+                widget.server.useTLS ? S.of(context).tlsEnabled : S.of(context).tlsDisabled,
               ),
               const SizedBox(height: 20),
               SizedBox(
@@ -325,7 +341,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text('切换服务器'),
+                  child: Text(S.of(context).switchServer),
                 ),
               ),
             ],
@@ -359,7 +375,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: AppColors.textSecondary),
-                title: Text('清空聊天记录', style: AppTextStyles.bodyMedium),
+                title: Text(S.of(context).clearChatHistory, style: AppTextStyles.bodyMedium),
                 onTap: () {
                   Navigator.pop(context);
                   ref.read(messageListProvider(widget.server.id).notifier).clearHistory();
@@ -367,7 +383,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.settings_outlined, color: AppColors.textSecondary),
-                title: Text('服务器设置', style: AppTextStyles.bodyMedium),
+                title: Text(S.of(context).serverSettings, style: AppTextStyles.bodyMedium),
                 onTap: () {
                   Navigator.pop(context);
                 },

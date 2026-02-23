@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n/app_localizations.dart';
+
 import '../../constants/app_theme.dart';
 import '../../models/server_config.dart';
 
@@ -71,7 +73,7 @@ class ServerCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(AppRadius.small),
                           ),
                           child: Text(
-                            '默认',
+                            S.of(context).defaultBadge,
                             style: AppTextStyles.captionSmall.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w500,
@@ -99,7 +101,7 @@ class ServerCard extends StatelessWidget {
                       ),
                       if (config.lastConnected != null)
                         Text(
-                          _formatTime(config.lastConnected!),
+                          _formatTime(context, config.lastConnected!),
                           style: AppTextStyles.captionSmall,
                         ),
                     ],
@@ -126,7 +128,7 @@ class ServerCard extends StatelessWidget {
                     case 'copy':
                       Clipboard.setData(ClipboardData(text: config.displayAddress));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('地址已复制')),
+                        SnackBar(content: Text(S.of(context).addressCopied)),
                       );
                       break;
                     case 'edit':
@@ -137,38 +139,41 @@ class ServerCard extends StatelessWidget {
                       break;
                   }
                 },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'copy',
-                    child: Row(
-                      children: [
-                        Icon(Icons.copy_outlined, size: 18, color: AppColors.textSecondary),
-                        SizedBox(width: 10),
-                        Text('复制地址', style: AppTextStyles.bodyMedium),
-                      ],
+                itemBuilder: (context) {
+                  final l10n = S.of(context);
+                  return [
+                    PopupMenuItem(
+                      value: 'copy',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.copy_outlined, size: 18, color: AppColors.textSecondary),
+                          const SizedBox(width: 10),
+                          Text(l10n.copyAddress, style: AppTextStyles.bodyMedium),
+                        ],
+                      ),
                     ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
-                        SizedBox(width: 10),
-                        Text('编辑', style: AppTextStyles.bodyMedium),
-                      ],
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
+                          const SizedBox(width: 10),
+                          Text(l10n.edit, style: AppTextStyles.bodyMedium),
+                        ],
+                      ),
                     ),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
-                        const SizedBox(width: 10),
-                        Text('删除', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error)),
-                      ],
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                          const SizedBox(width: 10),
+                          Text(l10n.delete, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error)),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ];
+                },
               ),
             ),
           ],
@@ -222,14 +227,15 @@ class ServerCard extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime time) {
+  String _formatTime(BuildContext context, DateTime time) {
+    final l10n = S.of(context);
     final now = DateTime.now();
     final diff = now.difference(time);
 
-    if (diff.inMinutes < 1) return '刚刚';
-    if (diff.inHours < 1) return '${diff.inMinutes}分钟前';
-    if (diff.inDays < 1) return '${diff.inHours}小时前';
-    if (diff.inDays < 7) return '${diff.inDays}天前';
+    if (diff.inMinutes < 1) return l10n.justNow;
+    if (diff.inHours < 1) return l10n.minutesAgo(diff.inMinutes);
+    if (diff.inDays < 1) return l10n.hoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l10n.daysAgo(diff.inDays);
     return '${time.month}/${time.day}';
   }
 }
