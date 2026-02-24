@@ -25,6 +25,8 @@ class ChatPage extends ConsumerStatefulWidget {
 }
 
 class _ChatPageState extends ConsumerState<ChatPage> {
+  static const double _pinnedThreshold = 50.0;
+
   final _scrollController = ScrollController();
   bool _isPinnedToBottom = true;
 
@@ -47,7 +49,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _onScroll() {
     if (!_scrollController.hasClients) return;
     final pixels = _scrollController.position.pixels;
-    final pinned = pixels <= 50;
+    final pinned = pixels <= _pinnedThreshold;
     if (pinned != _isPinnedToBottom) {
       setState(() => _isPinnedToBottom = pinned);
     }
@@ -66,7 +68,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     if (connection == ConnState.connected) {
       ref.read(messageListProvider(widget.server.id).notifier).sendMessage(text);
       setState(() => _isPinnedToBottom = true);
-      WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _jumpToBottom();
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).notConnectedToServer)),
@@ -87,7 +91,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     if (_isPinnedToBottom && messages.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients && _isPinnedToBottom) {
+        if (mounted && _scrollController.hasClients && _isPinnedToBottom) {
           _scrollController.jumpTo(0);
         }
       });
