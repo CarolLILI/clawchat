@@ -216,6 +216,20 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           InputBar(
             onSend: _sendMessage,
             isEnabled: connectionState == ConnState.connected,
+            onFocusChanged: (hasFocus) {
+              if (hasFocus &&
+                  _scrollController.hasClients &&
+                  messages.isNotEmpty) {
+                final p = _scrollController.position;
+                if (p.pixels <= 20) {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                  );
+                }
+              }
+            },
           ),
         ],
       ),

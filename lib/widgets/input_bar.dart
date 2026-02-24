@@ -6,11 +6,13 @@ import '../../constants/app_theme.dart';
 /// 底部输入栏
 class InputBar extends StatefulWidget {
   final ValueChanged<String>? onSend;
+  final ValueChanged<bool>? onFocusChanged;
   final bool isEnabled;
 
   const InputBar({
     super.key,
     this.onSend,
+    this.onFocusChanged,
     this.isEnabled = true,
   });
 
@@ -24,7 +26,18 @@ class _InputBarState extends State<InputBar> {
   bool _isComposing = false;
 
   @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    widget.onFocusChanged?.call(_focusNode.hasFocus);
+  }
+
+  @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChange);
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
