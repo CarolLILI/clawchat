@@ -62,8 +62,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _sendMessage(String text) {
     final connection = ref.read(connectionProvider(widget.server.id));
     if (connection == ConnState.connected) {
-      ref.read(messageListProvider(widget.server.id).notifier).sendMessage(text);
       _isPinnedToBottom = true;
+      ref.read(messageListProvider(widget.server.id).notifier).sendMessage(text);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).notConnectedToServer)),
