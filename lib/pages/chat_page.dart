@@ -62,6 +62,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   void _scrollToBottom() {
+    final messages = ref.read(messageListProvider(widget.server.id));
+    if (messages.isEmpty) return;
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
