@@ -26,10 +26,12 @@ class ChatPage extends ConsumerStatefulWidget {
 
 class _ChatPageState extends ConsumerState<ChatPage> {
   final _scrollController = ScrollController();
+  bool _isPinnedToBottom = true;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _connect();
     });
@@ -37,8 +39,18 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pixels = _scrollController.position.pixels;
+    final pinned = pixels <= 50;
+    if (pinned != _isPinnedToBottom) {
+      setState(() => _isPinnedToBottom = pinned);
+    }
   }
 
   void _connect() {
@@ -53,7 +65,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final connection = ref.read(connectionProvider(widget.server.id));
     if (connection == ConnState.connected) {
       ref.read(messageListProvider(widget.server.id).notifier).sendMessage(text);
-      _scrollToBottom();
+      setState(() => _isPinnedToBottom = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _jumpToBottom());
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).notConnectedToServer)),
@@ -61,24 +74,24 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
   }
 
-  void _scrollToBottom() {
-    final messages = ref.read(messageListProvider(widget.server.id));
-    if (messages.isEmpty) return;
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+  void _jumpToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final connectionState = ref.watch(connectionProvider(widget.server.id));
     final messages = ref.watch(messageListProvider(widget.server.id));
+
+    if (_isPinnedToBottom && messages.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients && _isPinnedToBottom) {
+          _scrollController.jumpTo(0);
+        }
+      });
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -219,17 +232,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             onSend: _sendMessage,
             isEnabled: connectionState == ConnState.connected,
             onFocusChanged: (hasFocus) {
-              if (hasFocus &&
-                  _scrollController.hasClients &&
-                  messages.isNotEmpty) {
-                final p = _scrollController.position;
-                if (p.pixels <= 20) {
-                  _scrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                  );
-                }
+              if (hasFocus && _scrollController.hasClients && messages.isNotEmpty) {
+                _scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                );
               }
             },
           ),
