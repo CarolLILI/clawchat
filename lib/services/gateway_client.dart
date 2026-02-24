@@ -476,7 +476,7 @@ class GatewayClient {
       'id': 'chat_${DateTime.now().millisecondsSinceEpoch}',
       'method': 'chat.send',
       'params': {
-        'sessionKey': 'main',
+        'sessionKey': 'main_$sessionId',
         'message': text,
         'idempotencyKey':
             'chat_${DateTime.now().millisecondsSinceEpoch}_$sessionId',
@@ -492,7 +492,7 @@ class GatewayClient {
       'type': 'req',
       'id': 'sub_${DateTime.now().millisecondsSinceEpoch}',
       'method': 'chat.subscribe',
-      'params': {'sessionKey': 'main'},
+      'params': {'sessionKey': 'main_$sessionId'},
     };
     print('[ClawChat] Subscribing to chat');
     _channel!.sink.add(jsonEncode(subscribe));
