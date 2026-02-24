@@ -48,11 +48,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
-    final pixels = _scrollController.position.pixels;
-    final pinned = pixels <= _pinnedThreshold;
-    if (pinned != _isPinnedToBottom) {
-      setState(() => _isPinnedToBottom = pinned);
-    }
+    _isPinnedToBottom = _scrollController.position.pixels <= _pinnedThreshold;
   }
 
   void _connect() {
@@ -67,10 +63,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final connection = ref.read(connectionProvider(widget.server.id));
     if (connection == ConnState.connected) {
       ref.read(messageListProvider(widget.server.id).notifier).sendMessage(text);
-      setState(() => _isPinnedToBottom = true);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _jumpToBottom();
-      });
+      _isPinnedToBottom = true;
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).notConnectedToServer)),
@@ -78,24 +71,20 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
   }
 
-  void _jumpToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.jumpTo(0);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    ref.listen(messageListProvider(widget.server.id), (previous, next) {
+      if (_isPinnedToBottom && next.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _scrollController.hasClients && _isPinnedToBottom) {
+            _scrollController.jumpTo(0);
+          }
+        });
+      }
+    });
+
     final connectionState = ref.watch(connectionProvider(widget.server.id));
     final messages = ref.watch(messageListProvider(widget.server.id));
-
-    if (_isPinnedToBottom && messages.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _scrollController.hasClients && _isPinnedToBottom) {
-          _scrollController.jumpTo(0);
-        }
-      });
-    }
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
