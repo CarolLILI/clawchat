@@ -79,6 +79,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final messages = ref.watch(messageListProvider(widget.server.id));
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: GestureDetector(
           onTap: () => _showServerInfo(context),
@@ -200,11 +201,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 ? _buildEmptyState()
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    reverse: true,
+                    padding: const EdgeInsets.only(top: 8, bottom: 8),
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
-                      return MessageBubble(message: messages[index]);
+                      final message = messages[messages.length - 1 - index];
+                      return MessageBubble(message: message);
                     },
                   ),
           ),
