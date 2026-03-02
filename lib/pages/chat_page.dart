@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +7,7 @@ import '../l10n/app_localizations.dart';
 
 import '../constants/app_theme.dart';
 import '../l10n/error_localizations.dart';
+import '../models/message.dart';
 import '../models/server_config.dart';
 import '../providers/connection_provider.dart';
 import '../services/gateway_client.dart';
@@ -24,15 +27,17 @@ class ChatPage extends ConsumerStatefulWidget {
   ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends ConsumerState<ChatPage> {
+class _ChatPageState extends ConsumerState<ChatPage> with WidgetsBindingObserver {
   static const double _pinnedThreshold = 50.0;
 
   final _scrollController = ScrollController();
   bool _isPinnedToBottom = true;
+  double _lastBottomInset = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _connect();
@@ -41,14 +46,36 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
 
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    // 监听键盘高度变化
+    if (!mounted) return;
+    final bottomInset = PlatformDispatcher.instance.views.first.viewInsets.bottom;
+    if (bottomInset > _lastBottomInset) {
+      // 键盘正在弹起，如果之前在底部，就保持滚动在最底部
+      if (_scrollController.hasClients && _isPinnedToBottom) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _scrollController.hasClients) {
+            _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          }
+        });
+      }
+    }
+    _lastBottomInset = bottomInset;
+  }
+
   void _onScroll() {
     if (!_scrollController.hasClients) return;
-    _isPinnedToBottom = _scrollController.position.pixels <= _pinnedThreshold;
+    // 正序模式下：最大滚动值是底部，贴底即 position.pixels >= maxScrollExtent - _pinnedThreshold
+    final pos = _scrollController.position;
+    _isPinnedToBottom = pos.pixels >= pos.maxScrollExtent - _pinnedThreshold;
   }
 
   void _connect() {
@@ -77,7 +104,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (_isPinnedToBottom && next.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _scrollController.hasClients && _isPinnedToBottom) {
-            _scrollController.jumpTo(0);
+            // 正序模式下，滚动到最底部 (maxScrollExtent) 以显示最新消息
+            final pos = _scrollController.position;
+            _scrollController.jumpTo(pos.maxScrollExtent);
           }
         });
       }
@@ -203,18 +232,18 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               ),
             ),
 
-          // 消息列表
+          // 消息列表：正序排布（从上往下流式），第一条在最顶部。通过键盘监听和自动滚动保持体验
           Expanded(
             child: messages.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
                     controller: _scrollController,
-                    reverse: true,
                     padding: const EdgeInsets.only(top: 8, bottom: 16),
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
-                      final message = messages[messages.length - 1 - index];
+                      // 正序：0是最早的在上面，最后的是最新在下面
+                      final message = messages[index];
                       return MessageBubble(message: message);
                     },
                   ),
@@ -226,8 +255,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             isEnabled: connectionState == ConnState.connected,
             onFocusChanged: (hasFocus) {
               if (hasFocus && _scrollController.hasClients && messages.isNotEmpty) {
+                // 正序模式下：滚动到最大范围（最底部）
+                final pos = _scrollController.position;
                 _scrollController.animateTo(
-                  0,
+                  pos.maxScrollExtent,
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeOut,
                 );

@@ -98,6 +98,9 @@
 
   "defaultBadge": "Default",
   "addressCopied": "Address copied",
+  "messageCopied": "Message copied",
+  "copyMessage": "Copy",
+  "quoteReply": "Quote Reply",
   "copyAddress": "Copy Address",
   "edit": "Edit",
   "justNow": "Just now",

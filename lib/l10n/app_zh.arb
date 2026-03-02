@@ -98,6 +98,9 @@
 
   "defaultBadge": "默认",
   "addressCopied": "地址已复制",
+  "messageCopied": "消息已复制",
+  "copyMessage": "复制",
+  "quoteReply": "引用回复",
   "copyAddress": "复制地址",
   "edit": "编辑",
   "justNow": "刚刚",

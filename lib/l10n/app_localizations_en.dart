@@ -243,6 +243,15 @@ class SEn extends S {
   String get addressCopied => 'Address copied';
 
   @override
+  String get messageCopied => 'Message copied';
+
+  @override
+  String get copyMessage => 'Copy';
+
+  @override
+  String get quoteReply => 'Quote Reply';
+
+  @override
   String get copyAddress => 'Copy Address';
 
   @override

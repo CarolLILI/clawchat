@@ -608,6 +608,24 @@ abstract class S {
   /// **'地址已复制'**
   String get addressCopied;
 
+  /// No description provided for @messageCopied.
+  ///
+  /// In zh, this message translates to:
+  /// **'消息已复制'**
+  String get messageCopied;
+
+  /// No description provided for @copyMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制'**
+  String get copyMessage;
+
+  /// No description provided for @quoteReply.
+  ///
+  /// In zh, this message translates to:
+  /// **'引用回复'**
+  String get quoteReply;
+
   /// No description provided for @copyAddress.
   ///
   /// In zh, this message translates to:
