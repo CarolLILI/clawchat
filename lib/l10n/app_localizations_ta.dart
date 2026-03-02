@@ -244,6 +244,15 @@ class STa extends S {
   String get addressCopied => 'முகவரி நகலெடுக்கப்பட்டது';
 
   @override
+  String get messageCopied => '消息已复制';
+
+  @override
+  String get copyMessage => '复制';
+
+  @override
+  String get quoteReply => '引用回复';
+
+  @override
   String get copyAddress => 'முகவரியை நகலெடு';
 
   @override

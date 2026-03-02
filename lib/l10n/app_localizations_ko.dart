@@ -241,6 +241,15 @@ class SKo extends S {
   String get addressCopied => '주소가 복사되었습니다';
 
   @override
+  String get messageCopied => '消息已复制';
+
+  @override
+  String get copyMessage => '复制';
+
+  @override
+  String get quoteReply => '引用回复';
+
+  @override
   String get copyAddress => '주소 복사';
 
   @override

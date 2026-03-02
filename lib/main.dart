@@ -8,10 +8,15 @@ import 'services/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // 初始化本地存储
-  await StorageService().init();
-  
+
+  // 初始化本地存储（失败也继续启动，避免白屏）
+  try {
+    await StorageService().init();
+  } catch (e, st) {
+    debugPrint('[ClawChat] Storage init failed: $e');
+    debugPrintStack(stackTrace: st);
+  }
+
   runApp(
     const ProviderScope(
       child: ClawChatApp(),
@@ -166,7 +171,60 @@ class ClawChatApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color(0xFF1F2329),
       ),
-      home: const ServerListPage(),
+      builder: (context, child) {
+        return Container(
+          color: AppColors.background,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
+      home: const _AppLoader(),
     );
+  }
+}
+
+/// 启动加载页：先显示简单界面确保有内容，再进入首页，避免首屏白屏
+class _AppLoader extends StatefulWidget {
+  const _AppLoader();
+
+  @override
+  State<_AppLoader> createState() => _AppLoaderState();
+}
+
+class _AppLoaderState extends State<_AppLoader> {
+  bool _showHome = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _showHome = true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_showHome) {
+      return Material(
+        color: AppColors.background,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'ClawChat',
+                style: AppTextStyles.headlineMedium.copyWith(color: AppColors.primary),
+              ),
+              const SizedBox(height: 24),
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return const ServerListPage();
   }
 }

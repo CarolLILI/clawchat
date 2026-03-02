@@ -243,6 +243,15 @@ class SAr extends S {
   String get addressCopied => 'تم نسخ العنوان';
 
   @override
+  String get messageCopied => '消息已复制';
+
+  @override
+  String get copyMessage => '复制';
+
+  @override
+  String get quoteReply => '引用回复';
+
+  @override
   String get copyAddress => 'نسخ العنوان';
 
   @override
