@@ -9,9 +9,7 @@ class BubbleMenuOverlay extends StatefulWidget {
   final Widget bubbleWidget;
   final bool isUserBubble;
   final VoidCallback onCopy;
-  final VoidCallback onQuoteReply;
   final String copyLabel;
-  final String quoteReplyLabel;
 
   const BubbleMenuOverlay({
     super.key,
@@ -19,9 +17,7 @@ class BubbleMenuOverlay extends StatefulWidget {
     required this.bubbleWidget,
     required this.isUserBubble,
     required this.onCopy,
-    required this.onQuoteReply,
     required this.copyLabel,
-    required this.quoteReplyLabel,
   });
 
   @override
@@ -79,7 +75,7 @@ class _BubbleMenuOverlayState extends State<BubbleMenuOverlay>
         ? widget.bubbleRect.bottom + gap
         : widget.bubbleRect.top - menuHeight - gap;
 
-    const menuWidth = 160.0;
+    const menuWidth = 80.0;
     double menuLeft;
     if (widget.isUserBubble) {
       menuLeft = widget.bubbleRect.right - menuWidth;
@@ -164,17 +160,6 @@ class _BubbleMenuOverlayState extends State<BubbleMenuOverlay>
               await _dismiss();
               widget.onCopy();
             },
-            isFirst: true,
-          ),
-          Container(width: 0.5, height: 64, color: AppColors.divider),
-          _buildActionButton(
-            icon: Icons.format_quote_outlined,
-            label: widget.quoteReplyLabel,
-            onTap: () async {
-              await _dismiss();
-              widget.onQuoteReply();
-            },
-            isFirst: false,
           ),
         ],
       ),
@@ -185,31 +170,26 @@ class _BubbleMenuOverlayState extends State<BubbleMenuOverlay>
     required IconData icon,
     required String label,
     required Future<void> Function() onTap,
-    required bool isFirst,
   }) {
-    return Expanded(
-      child: InkWell(
-        onTap: () => onTap(),
-        borderRadius: BorderRadius.horizontal(
-          left: isFirst ? const Radius.circular(12) : Radius.zero,
-          right: isFirst ? Radius.zero : const Radius.circular(12),
-        ),
-        child: SizedBox(
-          height: 64,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 22, color: AppColors.textPrimary),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textSecondary,
-                ),
+    return InkWell(
+      onTap: () => onTap(),
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: 80,
+        height: 64,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 22, color: AppColors.textPrimary),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

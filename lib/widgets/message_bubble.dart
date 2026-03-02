@@ -46,7 +46,6 @@ class _MessageBubbleState extends State<MessageBubble> {
           bubbleWidget: bubbleCopy,
           isUserBubble: isUser,
           copyLabel: s.copyMessage,
-          quoteReplyLabel: s.quoteReply,
           onCopy: () async {
             await Clipboard.setData(
               ClipboardData(text: widget.message.content),
@@ -61,7 +60,6 @@ class _MessageBubbleState extends State<MessageBubble> {
               );
             }
           },
-          onQuoteReply: () {},
         ),
       ),
     );
