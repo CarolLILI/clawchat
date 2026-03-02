@@ -23,7 +23,7 @@ class MessageBubble extends StatelessWidget {
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black26,
       builder: (sheetContext) {
-        final s = S.of(context);
+        final s = S.of(sheetContext);
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
@@ -44,42 +44,43 @@ class MessageBubble extends StatelessWidget {
                     children: [
                       // Copy
                       InkWell(
-                        onTap: () {
+                        onTap: () async {
                           Navigator.of(sheetContext).pop();
-                          Clipboard.setData(
+                          await Clipboard.setData(
                             ClipboardData(text: message.content),
                           );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(s.messageCopied),
-                              duration: const Duration(seconds: 2),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(s.messageCopied),
+                                duration: const Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
                         },
                         child: SizedBox(
                           height: 56,
-                          child: Row(
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              const SizedBox(width: 16),
-                              Icon(
-                                Icons.copy_outlined,
-                                color: AppColors.textPrimary,
-                                size: 20,
+                              const Positioned(
+                                left: 16,
+                                child: Icon(
+                                  Icons.copy_outlined,
+                                  color: AppColors.textPrimary,
+                                  size: 20,
+                                ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Center(
-                                  child: Text(
-                                    s.copyMessage,
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      color: AppColors.textPrimary,
-                                    ),
+                              Center(
+                                child: Text(
+                                  s.copyMessage,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 48),
                             ],
                           ),
                         ),
@@ -98,27 +99,26 @@ class MessageBubble extends StatelessWidget {
                         },
                         child: SizedBox(
                           height: 56,
-                          child: Row(
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              const SizedBox(width: 16),
-                              Icon(
-                                Icons.format_quote_outlined,
-                                color: AppColors.textPrimary,
-                                size: 20,
+                              const Positioned(
+                                left: 16,
+                                child: Icon(
+                                  Icons.format_quote_outlined,
+                                  color: AppColors.textPrimary,
+                                  size: 20,
+                                ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Center(
-                                  child: Text(
-                                    s.quoteReply,
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      color: AppColors.textPrimary,
-                                    ),
+                              Center(
+                                child: Text(
+                                  s.quoteReply,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 48),
                             ],
                           ),
                         ),
@@ -143,7 +143,7 @@ class MessageBubble extends StatelessWidget {
                       child: Center(
                         child: Text(
                           s.cancel,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 17,
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
