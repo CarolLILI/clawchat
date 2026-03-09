@@ -303,7 +303,6 @@ class GatewayClient {
         if (response['ok'] == true) {
           print('[ClawChat] Handshake successful!');
           _updateState(GatewayConnectionState.connected);
-          _subscribeChat();
           if (!completer.isCompleted) {
             completer.complete(ConnectionResult(success: true));
           }
@@ -382,7 +381,7 @@ class GatewayClient {
         'publicKey': pubKey,
         'signature': signature,
         'signedAt': signedAtMs,
-        if (_connectNonce != null) 'nonce': _connectNonce,
+        if (_connectNonce != null && _connectNonce!.isNotEmpty) 'nonce': _connectNonce else 'nonce': '', // 强制添加 nonce 字段
       };
     }
 
@@ -485,17 +484,6 @@ class GatewayClient {
 
     print('[ClawChat] Sending message');
     _channel!.sink.add(jsonEncode(payload));
-  }
-
-  void _subscribeChat() {
-    final subscribe = {
-      'type': 'req',
-      'id': 'sub_${DateTime.now().millisecondsSinceEpoch}',
-      'method': 'chat.subscribe',
-      'params': {'sessionKey': 'main'},
-    };
-    print('[ClawChat] Subscribing to chat');
-    _channel!.sink.add(jsonEncode(subscribe));
   }
 
   void _updateState(GatewayConnectionState state) {
